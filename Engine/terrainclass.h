@@ -13,6 +13,12 @@
 #include <stdio.h>
 
 
+#include "textureclass.h"
+
+
+//globals
+const int TEXTURE_REPEAT = 8;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: TerrainClass
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,12 +28,14 @@ private:
 	struct VertexType
 	{
 		D3DXVECTOR3 position;
+		D3DXVECTOR2 texture;
 	    D3DXVECTOR3 normal;
 	};
 
 	struct HeightMapType 
 	{ 
 		float x, y, z;
+		float tu, tv;
 		float nx, ny, nz;
 	};
 
@@ -41,8 +49,8 @@ public:
 	TerrainClass(const TerrainClass&);
 	~TerrainClass();
 
-	bool Initialize(ID3D11Device*, char*);
-	bool InitializeTerrain(ID3D11Device*, int terrainWidth, int terrainHeight);
+	bool Initialize(ID3D11Device*, char*,WCHAR*);
+	bool InitializeTerrain(ID3D11Device*, int terrainWidth, int terrainHeight, WCHAR*, WCHAR*, WCHAR*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool GenerateHeightMap(ID3D11Device* device, bool keydown);
@@ -58,11 +66,20 @@ public:
 	bool PassThroughPerlinNoise(ID3D11Device * device, bool keydown);
 	int  GetIndexCount();
 
+	ID3D11ShaderResourceView* GetGrassTexture();
+	ID3D11ShaderResourceView* GetSlopeTexture();
+	ID3D11ShaderResourceView* GetRockTexture();
+
 private:
 	bool LoadHeightMap(char*);
 	void NormalizeHeightMap();
 	bool CalculateNormals();
 	void ShutdownHeightMap();
+
+	void CalculateTextureCoordinates();
+	bool LoadTexture(ID3D11Device*, WCHAR*,WCHAR*,WCHAR*);
+	void ReleaseTexture();
+
 
 	bool InitializeBuffers(ID3D11Device*);
 	void ShutdownBuffers();
@@ -74,6 +91,7 @@ private:
 	int m_vertexCount, m_indexCount;
 	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
 	HeightMapType* m_heightMap;
+	TextureClass  *m_GrassTexture,*m_SlopeTexture, *m_RockTexture;
 };
 
 #endif

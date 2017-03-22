@@ -14,6 +14,9 @@ TerrainClass::TerrainClass()
 	m_indexBuffer = 0;
 	m_heightMap = 0;
 	m_terrainGeneratedToggle = false;
+	m_GrassTexture = 0;
+	m_SlopeTexture= 0;
+	m_RockTexture = 0;
 }
 
 
@@ -26,7 +29,7 @@ TerrainClass::~TerrainClass()
 {
 }
 
-bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int terrainHeight)
+bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int terrainHeight, WCHAR* GrassTextureFilename, WCHAR* SlopeTextureFilename, WCHAR* RockTextureFilename)
 {
 	int index;
 	float height = 0.0;
@@ -66,6 +69,17 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 		return false;
 	}
 
+	//Calculate the Texture
+	CalculateTextureCoordinates();
+
+	//load the texture
+	result = LoadTexture(device, GrassTextureFilename,SlopeTextureFilename,RockTextureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+
 	// Initialize the vertex and index buffer that hold the geometry for the terrain.
 	result = InitializeBuffers(device);
 	if(!result)
@@ -75,7 +89,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 
 	return true;
 }
-bool TerrainClass::Initialize(ID3D11Device* device, char* heightMapFilename)
+bool TerrainClass::Initialize(ID3D11Device* device, char* heightMapFilename, WCHAR* textureFilename)
 {
 	bool result;
 
@@ -97,6 +111,17 @@ bool TerrainClass::Initialize(ID3D11Device* device, char* heightMapFilename)
 		return false;
 	}
 
+	//Calculate the Texture
+	CalculateTextureCoordinates();
+
+	//load the texture
+	//result = LoadTexture(device,textureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+
 	// Initialize the vertex and index buffer that hold the geometry for the terrain.
 	result = InitializeBuffers(device);
 	if(!result)
@@ -107,9 +132,24 @@ bool TerrainClass::Initialize(ID3D11Device* device, char* heightMapFilename)
 	return true;
 }
 
+ID3D11ShaderResourceView* TerrainClass::GetGrassTexture() {
+	return m_GrassTexture->GetTexture();
+}
+
+ID3D11ShaderResourceView* TerrainClass::GetSlopeTexture() {
+	return m_SlopeTexture->GetTexture();
+}
+
+
+ID3D11ShaderResourceView* TerrainClass::GetRockTexture() {
+	return m_RockTexture->GetTexture();
+}
 
 void TerrainClass::Shutdown()
 {
+	//release texture
+	ReleaseTexture();
+
 	// Release the vertex and index buffer.
 	ShutdownBuffers();
 
@@ -157,12 +197,12 @@ bool TerrainClass::GenerateHeightMap(ID3D11Device* device, bool keydown)
 				index = (m_terrainHeight * j) + i;
 
 				m_heightMap[index].x = (float)i;
-				m_heightMap[index].y = (float)((rand()%15));//(float)(cos((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
+				m_heightMap[index].y = m_heightMap[index].y + RandomFloat(-0.4f,0.4f);//(float)((rand()%15));//(float)(cos((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
 				m_heightMap[index].z = (float)j;
 			}
 		}
 
-		SmoothTerrain(2);
+		//SmoothTerrain(2);
 
 		result = CalculateNormals();
 		if(!result)
@@ -258,10 +298,6 @@ bool TerrainClass::SmoothTerrain(ID3D11Device* device, bool keydown)
 	{
 		m_terrainGeneratedToggle = false;
 	}
-
-
-
-
 	return true;
 }
 
@@ -323,7 +359,6 @@ float TerrainClass::RandomFloat(float a, float b) {
 }
 bool TerrainClass::Faulting(ID3D11Device* device, bool keydown)
 {
-
 	bool result;
 	//the toggle is just a bool that I use to make sure this is only called ONCE when you press a key
 	//until you release the key and start again. We dont want to be generating the terrain 500
@@ -352,10 +387,6 @@ bool TerrainClass::Faulting(ID3D11Device* device, bool keydown)
 	{
 		m_terrainGeneratedToggle = false;
 	}
-
-
-
-
 	return true;
 }
 
@@ -415,10 +446,6 @@ bool TerrainClass::PassThroughPerlinNoise(ID3D11Device* device, bool keydown)
 	{
 		m_terrainGeneratedToggle = false;
 	}
-
-
-
-
 	return true;
 }
 
@@ -690,6 +717,9 @@ bool TerrainClass::CalculateNormals()
 }
 
 
+
+
+
 void TerrainClass::ShutdownHeightMap()
 {
 	if(m_heightMap)
@@ -702,6 +732,134 @@ void TerrainClass::ShutdownHeightMap()
 }
 
 
+void TerrainClass::CalculateTextureCoordinates()
+{
+	int incrementCount, i, j, tuCount, tvCount;
+	float incrementValue, tuCoordinate, tvCoordinate;
+
+
+	// Calculate how much to increment the texture coordinates by.
+	incrementValue = (float)TEXTURE_REPEAT / (float)m_terrainWidth;
+
+	// Calculate how many times to repeat the texture.
+	incrementCount = m_terrainWidth / TEXTURE_REPEAT;
+
+	// Initialize the tu and tv coordinate values.
+	tuCoordinate = 0.0f;
+	tvCoordinate = 1.0f;
+
+	// Initialize the tu and tv coordinate indexes.
+	tuCount = 0;
+	tvCount = 0;
+
+	// Loop through the entire height map and calculate the tu and tv texture coordinates for each vertex.
+	for (j = 0; j<m_terrainHeight; j++)
+	{
+		for (i = 0; i<m_terrainWidth; i++)
+		{
+			// Store the texture coordinate in the height map.
+			m_heightMap[(m_terrainHeight * j) + i].tu = tuCoordinate;
+			m_heightMap[(m_terrainHeight * j) + i].tv = tvCoordinate;
+
+			// Increment the tu texture coordinate by the increment value and increment the index by one.
+			tuCoordinate += incrementValue;
+			tuCount++;
+
+			// Check if at the far right end of the texture and if so then start at the beginning again.
+			if (tuCount == incrementCount)
+			{
+				tuCoordinate = 0.0f;
+				tuCount = 0;
+			}
+		}
+
+		// Increment the tv texture coordinate by the increment value and increment the index by one.
+		tvCoordinate -= incrementValue;
+		tvCount++;
+
+		// Check if at the top of the texture and if so then start at the bottom again.
+		if (tvCount == incrementCount)
+		{
+			tvCoordinate = 1.0f;
+			tvCount = 0;
+		}
+	}
+
+	return;
+}
+
+bool TerrainClass::LoadTexture(ID3D11Device* device, WCHAR* GrassTextureFilename, WCHAR* SlopeTextureFilename,WCHAR* RockTextureFilename)
+{
+	bool result;
+
+
+	// Create the texture object.
+	m_GrassTexture = new TextureClass;
+	if (!m_GrassTexture)
+	{
+		return false;
+	}
+	m_SlopeTexture = new TextureClass;
+	if (!m_SlopeTexture)
+	{
+		return false;
+	}
+	m_RockTexture = new TextureClass;
+	if (!m_RockTexture)
+	{
+		return false;
+	}
+
+	// Initialize the texture object.
+	result = m_GrassTexture->Initialize(device, GrassTextureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = m_SlopeTexture->Initialize(device, SlopeTextureFilename);
+	if (!result)
+	{
+		return false;
+	}
+	result = m_RockTexture->Initialize(device, RockTextureFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+//The ReleaseTexture function releases the TextureClass object.
+
+void TerrainClass::ReleaseTexture()
+{
+	// Release the texture object.
+	if (m_GrassTexture)
+	{
+		m_GrassTexture->Shutdown();
+		delete m_GrassTexture;
+		m_GrassTexture = 0;
+	}
+
+	// Release the texture object.
+	if (m_SlopeTexture)
+	{
+		m_SlopeTexture->Shutdown();
+		delete m_SlopeTexture;
+		m_SlopeTexture = 0;
+	}
+
+	// Release the texture object.
+	if (m_RockTexture)
+	{
+		m_RockTexture->Shutdown();
+		delete m_RockTexture;
+		m_RockTexture = 0;
+	}
+	return;
+}
+
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {
 	VertexType* vertices;
@@ -711,6 +869,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
     D3D11_SUBRESOURCE_DATA vertexData, indexData;
 	HRESULT result;
 	int index1, index2, index3, index4;
+	float tu, tv;
 
 
 	// Calculate the number of vertices in the terrain mesh.
@@ -737,56 +896,78 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	index = 0;
 
 	// Load the vertex and index array with the terrain data.
-	for(j=0; j<(m_terrainHeight-1); j++)
+	// Load the vertex and index array with the terrain data.
+	for (j = 0; j<(m_terrainHeight - 1); j++)
 	{
-		for(i=0; i<(m_terrainWidth-1); i++)
+		for (i = 0; i<(m_terrainWidth - 1); i++)
 		{
+			index1 = (m_terrainHeight * j) + i;          // Bottom left.
+			index2 = (m_terrainHeight * j) + (i + 1);      // Bottom right.
+			index3 = (m_terrainHeight * (j + 1)) + i;      // Upper left.
+			index4 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.
 
-			if (j % 2 == i%2) {
-				index1 = (m_terrainHeight * j) + i;          // Bottom left.
-				index2 = (m_terrainHeight * j) + (i + 1);      // Bottom right.
-				index3 = (m_terrainHeight * (j + 1)) + i;      // Upper left.
-				index4 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.
-			}
-			else {
-				index1 = (m_terrainHeight * j) + (i + 1);        // Bottom right.
-				index2 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.   
-				index3 = (m_terrainHeight * j) + i;			     // Bottom left.
-				index4 = (m_terrainHeight * (j + 1)) + i;        //  Upper left.
-			}
+															 // Upper left.
+			tv = m_heightMap[index3].tv;
 
-			// Upper left.
+			// Modify the texture coordinates to cover the top edge.
+			if (tv == 1.0f) { tv = 0.0f; }
+
 			vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+			vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
 			vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
 			indices[index] = index;
 			index++;
 
 			// Upper right.
+			tu = m_heightMap[index4].tu;
+			tv = m_heightMap[index4].tv;
+
+			// Modify the texture coordinates to cover the top and right edge.
+			if (tu == 0.0f) { tu = 1.0f; }
+			if (tv == 1.0f) { tv = 0.0f; }
+
 			vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+			vertices[index].texture = D3DXVECTOR2(tu, tv);
 			vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
 			indices[index] = index;
 			index++;
 
 			// Bottom left.
 			vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+			vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
 			vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
 			indices[index] = index;
 			index++;
 
 			// Bottom left.
 			vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+			vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
 			vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
 			indices[index] = index;
 			index++;
 
 			// Upper right.
+			tu = m_heightMap[index4].tu;
+			tv = m_heightMap[index4].tv;
+
+			// Modify the texture coordinates to cover the top and right edge.
+			if (tu == 0.0f) { tu = 1.0f; }
+			if (tv == 1.0f) { tv = 0.0f; }
+
 			vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+			vertices[index].texture = D3DXVECTOR2(tu, tv);
 			vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
 			indices[index] = index;
 			index++;
 
 			// Bottom right.
+			tu = m_heightMap[index2].tu;
+
+			// Modify the texture coordinates to cover the right edge.
+			if (tu == 0.0f) { tu = 1.0f; }
+
 			vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+			vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
 			vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
 			indices[index] = index;
 			index++;
