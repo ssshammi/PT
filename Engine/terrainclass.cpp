@@ -248,18 +248,27 @@ void TerrainClass::SmoothTerrain(int n) {
 				index = (m_terrainHeight * j) + i;
 				int index2 = (m_terrainHeight*(j + 1)) + i;
 				int index3 = (m_terrainHeight*(j - 1)) + i;
+				int iNeg = -1;
+				int iPos = 1;
+
 
 				//m_heightMap[index].x = (float)i;
 				
 
 				if (j == 0) {
-					index3 = (m_terrainHeight-1)+i;
+					index3 = index;
 				}
 				else if (j == m_terrainHeight - 1) {
-					index2 = i;
+					index2 = index;
 				}
 
-				m_heightMap[index].y = (float)((m_heightMap[index + 1].y + m_heightMap[index - 1].y + m_heightMap[index2 + 1].y + m_heightMap[index2 - 1].y + m_heightMap[index3 + 1].y + m_heightMap[index3 - 1].y + m_heightMap[index3].y + m_heightMap[index2].y) / 8);
+				if (i == 0) {
+					iNeg = 0;
+				}
+				else if (i == m_terrainWidth - 1)
+					iPos = 0;
+
+				m_heightMap[index].y = (float)((m_heightMap[index + iPos].y + m_heightMap[index + iNeg].y + m_heightMap[index2 + iPos].y + m_heightMap[index2 +iNeg].y + m_heightMap[index3 + iPos].y + m_heightMap[index3 + iNeg].y + m_heightMap[index3].y + m_heightMap[index2].y) / 8);
 			}
 		}
 	}
