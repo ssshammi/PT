@@ -8,8 +8,6 @@ int *PerlinNoise::perm = nullptr;
 
 void PerlinNoise::initialize()
 {
-	
-
 		p = new int[256]{ 151, 160, 137, 91, 90, 15,
 			131, 13, 201, 95, 96, 53, 194, 233, 7, 225, 140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23,
 			190, 6, 148, 247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32, 57, 177, 33,
@@ -65,7 +63,7 @@ double PerlinNoise::noise(double x, double y, double z)
 	Z = Z & 255;
 
 	// Calculate a set of eight hashed gradient indices
-	int gi000 = perm[X + perm[Y + perm[Z]]] % 12;
+ 	int gi000 = perm[X + perm[Y + perm[Z]]] % 12;
 	int gi001 = perm[X + perm[Y + perm[Z + 1]]] % 12;
 	int gi010 = perm[X + perm[Y + 1 + perm[Z]]] % 12;
 	int gi011 = perm[X + perm[Y + 1 + perm[Z + 1]]] % 12;
@@ -117,4 +115,29 @@ PerlinNoise::PerlinNoise()
 
 PerlinNoise::~PerlinNoise()
 {
+}
+
+void PerlinNoise::Release() {
+	if (perm) {
+		delete[] perm;
+		perm = 0;
+	}
+	if (p) {
+		delete[] p;
+		p = 0;
+	}
+	for (int i = 0; i < 12; i++) {
+		if (grad3[i]) {
+			delete[] grad3[i];
+			grad3[i] = 0;
+		}
+	}
+
+	if (grad3) {
+		delete[] grad3;
+		grad3 = 0;
+	}
+
+	return;
+
 }

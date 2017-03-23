@@ -8,7 +8,7 @@ class PerlinNoise
 
 public:
 	static void initialize();
-
+	static void Release();
 	// Classic Perlin noise, 3D version
 	static double noise(double x, double y, double z);
 

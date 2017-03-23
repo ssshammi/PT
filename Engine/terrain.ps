@@ -39,6 +39,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	float4 grassColor;
 	float4 slopeColor;
 	float4 rockColor;
+	float4 textureColor;
 	float slope;
 	float blendAmount;
 	float3 lightDir;
@@ -47,7 +48,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 
 	grassColor = grassTexture.Sample(SampleType,input.tex);
 	slopeColor = slopeTexture.Sample(SampleType,input.tex);
-	rockTexture = rockTexture.Sample(SampleType,input.tex);
+	rockColor = rockTexture.Sample(SampleType,input.tex);
 
 	slope = 1-input.normal.y;
 

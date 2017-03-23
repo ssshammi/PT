@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "d3dclass.h"
 
-
 D3DClass::D3DClass()
 {
 	m_swapChain = 0;
@@ -72,6 +71,7 @@ bool D3DClass::Initialize(int screenWidth, int screenHeight, bool vsync, HWND hw
 	}
 
 	// Enumerate the primary adapter output (monitor).
+	
 	result = adapter->EnumOutputs(0, &adapterOutput);
 	if(FAILED(result))
 	{
