@@ -61,6 +61,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -87,9 +93,14 @@
     <ClCompile Include="fontclass.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsclass.cpp" />
+    <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="lightclass.cpp" />
+    <ClCompile Include="lightshaderclass.cpp" />
+    <ClCompile Include="LoadFromMaya.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="modelclass.cpp" />
+    <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
@@ -107,8 +118,13 @@
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />
     <ClInclude Include="fpsclass.h" />
+    <ClInclude Include="frustumclass.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="lightclass.h" />
+    <ClInclude Include="lightshaderclass.h" />
+    <ClInclude Include="LoadFromMaya.h" />
+    <ClInclude Include="modelclass.h" />
+    <ClInclude Include="modellistclass.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="systemclass.h" />
@@ -123,6 +139,10 @@
     <None Include="font.vs" />
     <None Include="terrain.ps" />
     <None Include="terrain.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="light_ps.hlsl" />
+    <FxCompile Include="light_vs.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

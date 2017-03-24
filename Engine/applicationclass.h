@@ -8,7 +8,7 @@
 /////////////
 // GLOBALS //
 /////////////
-const bool FULL_SCREEN = true;
+const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
@@ -29,7 +29,10 @@ const float SCREEN_NEAR = 0.1f;
 #include "textclass.h"
 #include "terrainshaderclass.h"
 #include "lightclass.h"
-
+#include "modelclass.h"
+#include "lightshaderclass.h"
+#include "modellistclass.h"
+#include "frustumclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
@@ -62,6 +65,11 @@ private:
 	TextClass* m_Text;
 	TerrainShaderClass* m_TerrainShader;
 	LightClass* m_Light;
+	ModelClass* m_Model;
+	LightShaderClass* m_LightShader;
+	ModelListClass* m_ModelList;
+	FrustumClass* m_Frustum;
+	
 };
 
 #endif

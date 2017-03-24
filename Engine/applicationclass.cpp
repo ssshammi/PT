@@ -18,6 +18,10 @@ ApplicationClass::ApplicationClass()
 	m_Text = 0;
 	m_TerrainShader = 0;
 	m_Light = 0;
+	m_Model = 0;
+	m_LightShader = 0;
+	m_ModelList = 0;
+	m_Frustum = 0;
 }
 
 
@@ -103,6 +107,36 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the terrain object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Model = new ModelClass;
+	if (!m_Model)
+	{
+		return false;
+	}
+
+	// Initialize the model object.
+	result = m_Model->Initialize(m_Direct3D->GetDevice(), "../Engine/data/cube.obj", L"../Engine/data/bricks.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+
+	// Create the light shader object.
+	m_LightShader = new LightShaderClass;
+	if (!m_LightShader)
+	{
+		return false;
+	}
+
+	// Initialize the light shader object.
+	result = m_LightShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the light shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -217,7 +251,32 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	// Initialize the light object.
 	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(1.0f,0.0f, 0.0f);
+	m_Light->SetDirection(1.0f,0.0f, 1.0f);
+	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetSpecularPower(20.0f);
+	
+	// Create the model list object.
+	m_ModelList = new ModelListClass;
+	if (!m_ModelList)
+	{
+		return false;
+	}
+	
+	// Initialize the model list object.
+	result = m_ModelList->Initialize(25);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the model list object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the frustum object.
+	m_Frustum = new FrustumClass;
+	if (!m_Frustum)
+	{
+		return false;
+	}
+
 
 	return true;
 }
@@ -225,6 +284,21 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
+	// Release the frustum object.
+	if (m_Frustum)
+	{
+		delete m_Frustum;
+		m_Frustum = 0;
+	}
+
+	// Release the model list object.
+	if (m_ModelList)
+	{
+		m_ModelList->Shutdown();
+		delete m_ModelList;
+		m_ModelList = 0;
+	}
+
 	// Release the light object.
 	if(m_Light)
 	{
@@ -262,6 +336,17 @@ void ApplicationClass::Shutdown()
 		m_Cpu->Shutdown();
 		delete m_Cpu;
 		m_Cpu = 0;
+	}
+
+	if (m_Model)
+	{
+		m_Model->Shutdown();
+		delete m_Model;
+		m_Model = 0;
+	}
+
+	if (m_LightShader) {
+
 	}
 
 	// Release the fps object.
@@ -455,8 +540,10 @@ bool ApplicationClass::HandleInput(float frameTime)
 bool ApplicationClass::RenderGraphics()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
-	bool result;
-
+	bool renderModel, result;
+	int modelCount, renderCount, index;
+	float positionX, positionY, positionZ, radius;
+	D3DXVECTOR4 color;
 
 	// Clear the scene.
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
@@ -469,6 +556,76 @@ bool ApplicationClass::RenderGraphics()
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	/*m_Model->Render(m_Direct3D->GetDeviceContext());
+
+
+	// Render the model using the light shader.
+	result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+		m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
+		m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	if (!result) {
+		return false;
+	}*/
+#pragma region RenderModelsFrustum
+
+
+	// Construct the frustum.
+	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+
+	// Get the number of models that will be rendered.
+	modelCount = m_ModelList->GetModelCount();
+
+	// Initialize the count of models that have been rendered.
+	renderCount = 0;
+
+	// Go through all the models and render them only if they can be seen by the camera view.
+	for (index = 0; index<modelCount; index++)
+	{
+		// Get the position and color of the sphere model at this index.
+		m_ModelList->GetData(index, positionX, positionY, positionZ, color);
+
+		// Set the radius of the sphere to 1.0 since this is already known.
+		radius = 1.0f;
+
+		// Check if the sphere model is in the view frustum.
+		renderModel = m_Frustum->CheckCube(positionX, positionY, positionZ, radius);
+
+		// If it can be seen then render it, if not skip this model and check the next sphere.
+		if (renderModel)
+		{
+			// Move the model to the location it should be rendered at.
+			D3DXMatrixTranslation(&worldMatrix, positionX, positionY, positionZ);
+
+			// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+			m_Model->Render(m_Direct3D->GetDeviceContext());
+
+			// Render the model using the light shader.
+			result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
+				m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor().x*(color), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
+				m_Light->GetSpecularColor().x*color, 1.0f);
+
+			if (!result) {
+				return false;
+			}
+
+			// Reset to the original world matrix.
+			m_Direct3D->GetWorldMatrix(worldMatrix);
+
+			// Since this model was rendered then increase the count for this frame.
+			renderCount++;
+		}
+	}
+
+	// Set the number of models that was actually rendered this frame.
+	result = m_Text->SetRenderCount(renderCount, m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+	
+#pragma endregion
 
 	// Render the terrain buffers.
 	m_Terrain->Render(m_Direct3D->GetDeviceContext());
