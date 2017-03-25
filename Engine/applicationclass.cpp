@@ -22,6 +22,7 @@ ApplicationClass::ApplicationClass()
 	m_LightShader = 0;
 	m_ModelList = 0;
 	m_Frustum = 0;
+	m_QuadTree = 0;
 }
 
 
@@ -251,7 +252,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	// Initialize the light object.
 	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(1.0f,0.0f, 1.0f);
+	m_Light->SetDirection(1.0f,-0.5f, 1.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(20.0f);
 	
@@ -277,6 +278,21 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	// Create the quad tree object.
+	m_QuadTree = new QuadTreeClass;
+	if (!m_QuadTree)
+	{
+		return false;
+	}
+
+	// Initialize the quad tree object.
+	result = m_QuadTree->Initialize(m_Terrain, m_Direct3D->GetDevice());
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the quad tree object.", L"Error", MB_OK);
+		return false;
+	}
+
 
 	return true;
 }
@@ -284,6 +300,14 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 void ApplicationClass::Shutdown()
 {
+	// Release the quad tree object.
+	if (m_QuadTree)
+	{
+		m_QuadTree->Shutdown();
+		delete m_QuadTree;
+		m_QuadTree = 0;
+	}
+
 	// Release the frustum object.
 	if (m_Frustum)
 	{
@@ -407,7 +431,9 @@ void ApplicationClass::Shutdown()
 
 bool ApplicationClass::Frame()
 {
-	bool result;
+	bool result, foundHeight;
+	D3DXVECTOR3 position;
+	float height;
 
 
 	// Read the user input.
@@ -449,6 +475,19 @@ bool ApplicationClass::Frame()
 		return false;
 	}
 
+	// Get the current position of the camera.
+	position = m_Camera->GetPosition();
+
+	// Get the height of the triangle that is directly underneath the given camera position.
+	foundHeight = m_QuadTree->GetHeightAtPosition(position.x, position.z, height);
+	if (foundHeight)
+	{
+		// If there was a triangle under the camera then position the camera just above it by two units.
+		if(position.y<3.0f)
+			m_Camera->SetPosition(position.x, height + 2.0f, position.z);
+	}
+
+
 	// Render the graphics.
 	result = RenderGraphics();
 	if(!result)
@@ -469,23 +508,34 @@ bool ApplicationClass::HandleInput(float frameTime)
 	// Set the frame time for calculating the updated position.
 	m_Position->SetFrameTime(frameTime);
 
-	// Handle the input.
+	//Randomized Noise
 	keyDown = m_Input->IsSpacePressed();
-	m_Terrain->GenerateHeightMap(m_Direct3D->GetDevice(), keyDown);	
+	if(keyDown){
+		m_Terrain->GenerateHeightMap(m_Direct3D->GetDevice(), keyDown);
+		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+	}
 
+	//Smoothing
+	keyDown = m_Input->IsSPressedOnce(); 
+	if(keyDown){
+		m_Terrain->SmoothTerrain(m_Direct3D->GetDevice(), keyDown);
+		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+	}
 
-	keyDown = m_Input->IsSpacePressed();
-	m_Terrain->GenerateHeightMap(m_Direct3D->GetDevice(), keyDown);
-
-	keyDown = m_Input->IsSPressedOnce();
-	m_Terrain->SmoothTerrain(m_Direct3D->GetDevice(), keyDown);
-
+	//perlin noise
 	keyDown = m_Input->IsXPressedOnce();
-	m_Terrain->PassThroughPerlinNoise(m_Direct3D->GetDevice(), keyDown);
+	if (keyDown) {
+		m_Terrain->PassThroughPerlinNoise(m_Direct3D->GetDevice(), keyDown);
+		m_QuadTree->ReinitializeBuffers(m_Terrain,m_Direct3D->GetDevice());
+	}
 
-
+	//Faulting
 	keyDown = m_Input->IsFPressedOnce();
-	m_Terrain->Faulting(m_Direct3D->GetDevice(), keyDown);
+	if (keyDown) {
+		m_Terrain->Faulting(m_Direct3D->GetDevice(), keyDown);
+		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+	}
+	
 
 	keyDown = m_Input->IsLeftPressed();
 	m_Position->TurnLeft(keyDown);
@@ -627,17 +677,32 @@ bool ApplicationClass::RenderGraphics()
 	
 #pragma endregion
 
-	// Render the terrain buffers.
-	m_Terrain->Render(m_Direct3D->GetDeviceContext());
+#pragma region RenderingQuadTerrain
 
-	// Render the terrain using the terrain shader.
-	result = m_TerrainShader->Render(m_Direct3D->GetDeviceContext(), m_Terrain->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, 
-									 m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Light->GetDirection(),
-										m_Terrain->GetGrassTexture(),m_Terrain->GetSlopeTexture(),m_Terrain->GetRockTexture());
-	if(!result)
+	// Construct the frustum.
+	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+
+	// Set the terrain shader parameters that it will use for rendering.
+	result = m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(),
+		m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetGrassTexture(),m_Terrain->GetSlopeTexture(),m_Terrain->GetRockTexture());
+	if (!result)
 	{
 		return false;
 	}
+
+	// Render the terrain using the quad tree and terrain shader.
+	m_QuadTree->Render(m_Frustum, m_Direct3D->GetDeviceContext(), m_TerrainShader);
+
+
+	// Set the number of rendered terrain triangles since some were culled.
+	result = m_Text->SetRenderCountQuad(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext());
+	if (!result)
+	{
+		return false;
+	}
+
+#pragma endregion
+
 
 	// Turn off the Z buffer to begin all 2D rendering.
 	m_Direct3D->TurnZBufferOff();

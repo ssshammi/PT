@@ -64,11 +64,15 @@ public:
 	void Console();
 	
 	bool PassThroughPerlinNoise(ID3D11Device * device, bool keydown);
-	int  GetIndexCount();
+	//int  GetIndexCount();
 
 	ID3D11ShaderResourceView* GetGrassTexture();
 	ID3D11ShaderResourceView* GetSlopeTexture();
 	ID3D11ShaderResourceView* GetRockTexture();
+
+
+	int GetVertexCount();
+	void CopyVertexArray(void*);
 
 private:
 	bool LoadHeightMap(char*);
@@ -83,13 +87,13 @@ private:
 
 	bool InitializeBuffers(ID3D11Device*);
 	void ShutdownBuffers();
-	void RenderBuffers(ID3D11DeviceContext*);
+	//void RenderBuffers(ID3D11DeviceContext*);
 	
 private:
 	bool m_terrainGeneratedToggle;
 	int m_terrainWidth, m_terrainHeight;
-	int m_vertexCount, m_indexCount;
-	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
+	int m_vertexCount,m_indexCount;
+	VertexType* m_vertices;
 	HeightMapType* m_heightMap;
 	TextureClass  *m_GrassTexture,*m_SlopeTexture, *m_RockTexture;
 };

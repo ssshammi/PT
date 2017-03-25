@@ -103,6 +103,7 @@
     <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="positionclass.cpp" />
+    <ClCompile Include="quadtreeclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="terrainclass.cpp" />
     <ClCompile Include="terrainshaderclass.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="modellistclass.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="positionclass.h" />
+    <ClInclude Include="quadtreeclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="terrainclass.h" />
     <ClInclude Include="terrainshaderclass.h" />

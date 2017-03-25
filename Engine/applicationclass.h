@@ -33,6 +33,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "lightshaderclass.h"
 #include "modellistclass.h"
 #include "frustumclass.h"
+#include "quadtreeclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
@@ -69,6 +70,7 @@ private:
 	LightShaderClass* m_LightShader;
 	ModelListClass* m_ModelList;
 	FrustumClass* m_Frustum;
+	QuadTreeClass* m_QuadTree;
 	
 };
 
