@@ -431,9 +431,7 @@ void ApplicationClass::Shutdown()
 
 bool ApplicationClass::Frame()
 {
-	bool result, foundHeight;
-	D3DXVECTOR3 position;
-	float height;
+	bool result;
 
 
 	// Read the user input.
@@ -475,17 +473,7 @@ bool ApplicationClass::Frame()
 		return false;
 	}
 
-	// Get the current position of the camera.
-	position = m_Camera->GetPosition();
-
-	// Get the height of the triangle that is directly underneath the given camera position.
-	foundHeight = m_QuadTree->GetHeightAtPosition(position.x, position.z, height);
-	if (foundHeight)
-	{
-		// If there was a triangle under the camera then position the camera just above it by two units.
-		if(position.y<3.0f)
-			m_Camera->SetPosition(position.x, height + 2.0f, position.z);
-	}
+	
 
 
 	// Render the graphics.
@@ -502,7 +490,6 @@ bool ApplicationClass::Frame()
 bool ApplicationClass::HandleInput(float frameTime)
 {
 	bool keyDown, result;
-	float posX, posY, posZ, rotX, rotY, rotZ;
 
 
 	// Set the frame time for calculating the updated position.
@@ -536,6 +523,11 @@ bool ApplicationClass::HandleInput(float frameTime)
 		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
 	}
 	
+	keyDown = m_Input->IsVPressedOnce();
+	if (keyDown) {
+		m_Terrain->VoronoiRegions(m_Direct3D->GetDevice(), keyDown);
+		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+	}
 
 	keyDown = m_Input->IsLeftPressed();
 	m_Position->TurnLeft(keyDown);
@@ -561,27 +553,61 @@ bool ApplicationClass::HandleInput(float frameTime)
 	keyDown = m_Input->IsPgDownPressed();
 	m_Position->LookDownward(keyDown);
 	
-	// Get the view point position/rotation.
+	result = SetCameraMovement();
+	if (!result)	return false;
+
+	return true;
+}
+
+
+bool ApplicationClass::SetCameraMovement() {
+	bool result, foundHeight;
+	float posX, posY, posZ, rotX, rotY, rotZ; 
+	float height;
+
+	// Get the view point position/rotation. Input for this is setup in HandleInput
 	m_Position->GetPosition(posX, posY, posZ);
 	m_Position->GetRotation(rotX, rotY, rotZ);
+	float newPosY = posY;
+
+	// Get the height of the triangle that is directly underneath the given camera position.
+	bool canWalk = false;
+	foundHeight = m_QuadTree->GetHeightAtPosition(posX, posZ, height,canWalk);
+	if (foundHeight)
+	{
+		// If there was a triangle under the camera then position the camera just above it by two units.
+		if (posY < 3.0f) {
+			newPosY = height + 2.0f;
+			if (!canWalk) {
+				//colission
+				posX = m_Camera->m_prevX;
+				posZ = m_Camera->m_prevZ;
+				m_Position->SetPosition(posX, posY, posZ);
+				newPosY = m_Camera->m_prevY;
+			}
+		}
+	}
+
+
 
 	// Set the position of the camera.
-	m_Camera->SetPosition(posX, posY, posZ);
+	m_Camera->SetPosition(posX, newPosY, posZ);
 	m_Camera->SetRotation(rotX, rotY, rotZ);
 
 	// Update the position values in the text object.
-	result = m_Text->SetCameraPosition(posX, posY, posZ, m_Direct3D->GetDeviceContext());
-	if(!result)
+	result = m_Text->SetCameraPosition(posX, newPosY, posZ, m_Direct3D->GetDeviceContext());
+	if (!result)
 	{
 		return false;
 	}
 
 	// Update the rotation values in the text object.
 	result = m_Text->SetCameraRotation(rotX, rotY, rotZ, m_Direct3D->GetDeviceContext());
-	if(!result)
+	if (!result)
 	{
 		return false;
 	}
+
 
 	return true;
 }

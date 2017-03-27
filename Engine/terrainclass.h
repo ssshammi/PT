@@ -11,11 +11,11 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include <stdio.h>
-
+#include <vector>
 
 #include "textureclass.h"
 
-
+using namespace std;
 //globals
 const int TEXTURE_REPEAT = 8;
 
@@ -30,18 +30,40 @@ private:
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 texture;
 	    D3DXVECTOR3 normal;
+		float walkable = 0.0f;
 	};
+
+	struct VectorType
+	{
+		float x, y, z;
+	};
+
+	struct VoronoiPoint {
+		float x, y, z;
+		int index;
+		float height;
+		int RegionIndex;
+	};
+
+	struct VoronoiData {
+		VoronoiPoint* VorPoint;
+		float dist;
+	};
+
 
 	struct HeightMapType 
 	{ 
 		float x, y, z;
 		float tu, tv;
 		float nx, ny, nz;
+		VoronoiData *VorData;
+		float walkable = 0.0f;
 	};
 
-	struct VectorType 
-	{ 
-		float x, y, z;
+	struct VoronoiRegion {
+		vector<int> VRegionIndices;
+		float maxDist = 0.0f;
+		VoronoiPoint* vPoint;
 	};
 
 public:
@@ -58,12 +80,16 @@ public:
 	void SmoothTerrain(int n);
 	void Faulting();
 	bool Faulting(ID3D11Device * device, bool keydown);
+	void VoronoiRegions();
+	bool VoronoiRegions(ID3D11Device * device, bool keydown);
 	void PassThroughPerlinNoise();
 
 	float RandomFloat(float a, float b);
 	void Console();
 	
 	bool PassThroughPerlinNoise(ID3D11Device * device, bool keydown);
+	bool PassProceduralFunction(ID3D11Device * device, bool keydown, bool (*x)());
+
 	//int  GetIndexCount();
 
 	ID3D11ShaderResourceView* GetGrassTexture();
@@ -83,6 +109,7 @@ private:
 	void CalculateTextureCoordinates();
 	bool LoadTexture(ID3D11Device*, WCHAR*,WCHAR*,WCHAR*);
 	void ReleaseTexture();
+	void ReleaseVornoi();
 
 
 	bool InitializeBuffers(ID3D11Device*);
@@ -96,6 +123,8 @@ private:
 	VertexType* m_vertices;
 	HeightMapType* m_heightMap;
 	TextureClass  *m_GrassTexture,*m_SlopeTexture, *m_RockTexture;
+	vector<VoronoiRegion*> *m_VRegions;
+	vector<VoronoiPoint*> *m_VPoints;
 };
 
 #endif

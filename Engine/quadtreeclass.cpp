@@ -152,16 +152,18 @@ void QuadTreeClass::ResetNodeBuffers(NodeType *node , ID3D11Device* device)
 			vertices[i].position = m_vertexList[node->mainTextureIndex[i]].position;
 			vertices[i].texture = m_vertexList[node->mainTextureIndex[i]].texture;
 			vertices[i].normal = m_vertexList[node->mainTextureIndex[i]].normal;
+			vertices[i].walkable = m_vertexList[node->mainTextureIndex[i]].walkable;
 			indices[i] = i;
 			node->vertexArray[i].x = m_vertexList[node->mainTextureIndex[i]].position.x;
 			node->vertexArray[i].y = m_vertexList[node->mainTextureIndex[i]].position.y;
 			node->vertexArray[i].z = m_vertexList[node->mainTextureIndex[i]].position.z;
+			node->vertexArray[i].walkable = m_vertexList[node->mainTextureIndex[i]].walkable;
 			
 	}
 
 	// Set up the description of the vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(VertexType) * vertexCount;
+	vertexBufferDesc.ByteWidth = sizeof(VertexType) * vertexCount;	
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0;
@@ -355,16 +357,17 @@ void QuadTreeClass::CreateTreeNode(NodeType* node, float positionX, float positi
 		{
 			// Calculate the index into the terrain vertex list.
 			vertexIndex = i * 3;
-
 			// Get the three vertices of this triangle from the vertex list.
 			vertices[index].position = m_vertexList[vertexIndex].position;
 			vertices[index].texture = m_vertexList[vertexIndex].texture;
 			vertices[index].normal = m_vertexList[vertexIndex].normal;
+			vertices[index].walkable = m_vertexList[vertexIndex].walkable;
 			node->mainTextureIndex[index] = vertexIndex;
 			// Also store the vertex position information in the node vertex array.
 			node->vertexArray[index].x = m_vertexList[vertexIndex].position.x;
 			node->vertexArray[index].y = m_vertexList[vertexIndex].position.y;
 			node->vertexArray[index].z = m_vertexList[vertexIndex].position.z;
+			node->vertexArray[index].walkable = m_vertexList[vertexIndex].walkable;
 
 			indices[index] = index;
 			index++;
@@ -373,10 +376,12 @@ void QuadTreeClass::CreateTreeNode(NodeType* node, float positionX, float positi
 			vertices[index].position = m_vertexList[vertexIndex].position;
 			vertices[index].texture = m_vertexList[vertexIndex].texture;
 			vertices[index].normal = m_vertexList[vertexIndex].normal;
+			vertices[index].walkable = m_vertexList[vertexIndex].walkable;
 			node->mainTextureIndex[index] = vertexIndex;
 			node->vertexArray[index].x = m_vertexList[vertexIndex].position.x;
 			node->vertexArray[index].y = m_vertexList[vertexIndex].position.y;
 			node->vertexArray[index].z = m_vertexList[vertexIndex].position.z;
+			node->vertexArray[index].walkable = m_vertexList[vertexIndex].walkable;
 			indices[index] = index;
 			index++;
 
@@ -384,10 +389,12 @@ void QuadTreeClass::CreateTreeNode(NodeType* node, float positionX, float positi
 			vertices[index].position = m_vertexList[vertexIndex].position;
 			vertices[index].texture = m_vertexList[vertexIndex].texture;
 			vertices[index].normal = m_vertexList[vertexIndex].normal;
+			vertices[index].walkable = m_vertexList[vertexIndex].walkable;
 			node->mainTextureIndex[index] = vertexIndex;
 			node->vertexArray[index].x = m_vertexList[vertexIndex].position.x;
 			node->vertexArray[index].y = m_vertexList[vertexIndex].position.y;
 			node->vertexArray[index].z = m_vertexList[vertexIndex].position.z;
+			node->vertexArray[index].walkable = m_vertexList[vertexIndex].walkable;
 			indices[index] = index;
 			index++;
 		}
@@ -630,7 +637,7 @@ void QuadTreeClass::RenderNode(NodeType* node, FrustumClass* frustum, ID3D11Devi
 }
 
 
-bool QuadTreeClass::GetHeightAtPosition(float positionX, float positionZ, float& height)
+bool QuadTreeClass::GetHeightAtPosition(float positionX, float positionZ, float& height, bool& canWalk)
 {
 	float meshMinX, meshMaxX, meshMinZ, meshMaxZ;
 
@@ -648,13 +655,13 @@ bool QuadTreeClass::GetHeightAtPosition(float positionX, float positionZ, float&
 	}
 
 	// Find the node which contains the polygon for this position.
-	FindNode(m_parentNode, positionX, positionZ, height);
+	FindNode(m_parentNode, positionX, positionZ, height,canWalk);
 
 	return true;
 }
 
 
-void QuadTreeClass::FindNode(NodeType* node, float x, float z, float& height)
+void QuadTreeClass::FindNode(NodeType* node, float x, float z, float& height,bool& canWalk)
 {
 	float xMin, xMax, zMin, zMax;
 	int count, i, index;
@@ -683,7 +690,7 @@ void QuadTreeClass::FindNode(NodeType* node, float x, float z, float& height)
 		if (node->nodes[i] != 0)
 		{
 			count++;
-			FindNode(node->nodes[i], x, z, height);
+			FindNode(node->nodes[i], x, z, height,canWalk);
 		}
 	}
 
@@ -698,19 +705,23 @@ void QuadTreeClass::FindNode(NodeType* node, float x, float z, float& height)
 	for (i = 0; i<node->triangleCount; i++)
 	{
 		index = i * 3;
+		float b1 = 0.0f, b2 = 0.0f, b3 = 0.0f;
 		vertex1[0] = node->vertexArray[index].x;
 		vertex1[1] = node->vertexArray[index].y;
 		vertex1[2] = node->vertexArray[index].z;
-
+		b1 = node->vertexArray[index].walkable;
 		index++;
+
 		vertex2[0] = node->vertexArray[index].x;
 		vertex2[1] = node->vertexArray[index].y;
 		vertex2[2] = node->vertexArray[index].z;
+		b2 = node->vertexArray[index].walkable;
 
 		index++;
 		vertex3[0] = node->vertexArray[index].x;
 		vertex3[1] = node->vertexArray[index].y;
 		vertex3[2] = node->vertexArray[index].z;
+		b3 = node->vertexArray[index].walkable;
 
 		// Check to see if this is the polygon we are looking for.
 		foundHeight = CheckHeightOfTriangle(x, z, height, vertex1, vertex2, vertex3);
@@ -718,6 +729,9 @@ void QuadTreeClass::FindNode(NodeType* node, float x, float z, float& height)
 		// If this was the triangle then quit the function and the height will be returned to the calling function.
 		if (foundHeight)
 		{
+			if(b1 +b2+b3==3.0f)
+				canWalk =true;
+
 			return;
 		}
 	}

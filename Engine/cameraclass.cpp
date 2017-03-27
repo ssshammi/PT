@@ -10,6 +10,10 @@ CameraClass::CameraClass()
 	m_positionY = 0.0f;
 	m_positionZ = 0.0f;
 
+	m_prevX = 0;
+	m_prevY = 0;
+	m_prevZ = 0;
+
 	m_rotationX = 0.0f;
 	m_rotationY = 0.0f;
 	m_rotationZ = 0.0f;
@@ -28,6 +32,9 @@ CameraClass::~CameraClass()
 
 void CameraClass::SetPosition(float x, float y, float z)
 {
+	m_prevX = m_positionX;
+	m_prevY = m_positionY;
+	m_prevZ = m_positionZ;
 	m_positionX = x;
 	m_positionY = y;
 	m_positionZ = z;

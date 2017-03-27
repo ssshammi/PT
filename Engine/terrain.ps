@@ -28,6 +28,7 @@ struct PixelInputType
     float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
+	float4 walkable : COLOR0;
 };
 
 
@@ -90,6 +91,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     color = saturate(color);
 	
 	color = color * textureColor;
+	color.x =  input.walkable.x;
 
     return color;
 }

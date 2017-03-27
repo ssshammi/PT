@@ -30,6 +30,9 @@ public:
 	void Render();
 	void GetViewMatrix(D3DXMATRIX&);
 
+
+	float m_prevX, m_prevY, m_prevZ;
+
 private:
 	float m_positionX, m_positionY, m_positionZ;
 	float m_rotationX, m_rotationY, m_rotationZ;

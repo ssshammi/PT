@@ -16,6 +16,8 @@ TerrainClass::TerrainClass()
 	m_SlopeTexture= 0;
 	m_RockTexture = 0;
 	m_vertices = 0;
+	m_VRegions = 0;
+	m_VPoints = 0;
 }
 
 
@@ -59,7 +61,8 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 		}
 	}
 
-	PassThroughPerlinNoise();
+	//PassThroughPerlinNoise();
+	//VoronoiRegions();
 
 	//even though we are generating a flat terrain, we still need to normalise it. 
 	// Calculate the normals for the terrain data.
@@ -147,6 +150,8 @@ ID3D11ShaderResourceView* TerrainClass::GetRockTexture() {
 
 void TerrainClass::Shutdown()
 {
+	ReleaseVornoi();
+
 	//release texture
 	ReleaseTexture();
 
@@ -219,9 +224,6 @@ bool TerrainClass::GenerateHeightMap(ID3D11Device* device, bool keydown)
 	{
 		m_terrainGeneratedToggle = false;
 	}
-
-	
-
 
 	return true;
 }
@@ -355,12 +357,15 @@ void TerrainClass::Faulting()
 	}
 
 }
+
 float TerrainClass::RandomFloat(float a, float b) {
 	float random = ((float)rand()) / (float)RAND_MAX;
 	float diff = b - a;
 	float r = random * diff;
 	return a + r;
 }
+
+
 bool TerrainClass::Faulting(ID3D11Device* device, bool keydown)
 {
 	bool result;
@@ -371,6 +376,201 @@ bool TerrainClass::Faulting(ID3D11Device* device, bool keydown)
 	{
 
 		Faulting();
+
+		result = CalculateNormals();
+		if (!result)
+		{
+			return false;
+		}
+
+		// Initialize the vertex and index buffer that hold the geometry for the terrain.
+		result = InitializeBuffers(device);
+		if (!result)
+		{
+			return false;
+		}
+
+		m_terrainGeneratedToggle = true;
+	}
+	else
+	{
+		m_terrainGeneratedToggle = false;
+	}
+	return true;
+}
+
+void TerrainClass::VoronoiRegions() {
+	ReleaseVornoi();
+
+	m_VPoints = new vector<VoronoiPoint*>;
+	m_VRegions = new vector<VoronoiRegion*>;
+	int numOfPoints = 50;
+	bool resetMesh = false;
+
+	for (int k = 0; k < numOfPoints; k++) {
+		int j =(int)RandomFloat(0,m_terrainHeight-1);
+		int i =(int)RandomFloat(0, m_terrainWidth - 1);
+		int index = (j*m_terrainWidth) + i;
+		VoronoiPoint* v = new VoronoiPoint;
+		VoronoiRegion* r = new VoronoiRegion;
+		v->x = m_heightMap[index].x;
+		v->y = m_heightMap[index].y;
+		v->z = m_heightMap[index].z;
+		v->index = index;
+		v->height = k;
+		if (k % 2 == 0)
+			v->height = -v->height;
+		v->RegionIndex = k;
+		r->vPoint = v;
+		m_VPoints->push_back(v);
+		m_VRegions->push_back(r);
+		m_VRegions->at(k)->maxDist = 0.0f;
+		v = 0;
+		r = 0;
+	}
+
+	//getVoronoi points
+	for (int j = 0; j < m_terrainHeight; j++) {
+		for (int i = 0; i < m_terrainWidth; i++)
+		{
+			int minIndex;
+			int index = (j*m_terrainWidth) + i;
+			float minDist = 1000.0f;
+			for (int k = 0; k < numOfPoints; k++) {
+				float dist = sqrt(pow(m_VPoints->at(k)->x - m_heightMap[index].x, 2) + pow(m_VPoints->at(k)->z - m_heightMap[index].z, 2));
+				if (dist < minDist)
+				{
+					minDist = dist;
+					minIndex = k;
+				}
+			}
+			VoronoiData *vd = new VoronoiData;
+			vd->VorPoint = m_VPoints->at(minIndex);
+			vd->dist = minDist;
+			m_heightMap[index].VorData = vd;
+			vd = 0;
+
+			//adding point to the region
+			int RegionIndex = m_VPoints->at(minIndex)->RegionIndex;
+			/*if (!m_VRegions->at(RegionIndex)->VRegionIndices) {
+				m_VRegions->at(RegionIndex)->VRegionIndices = new vector<int>;
+			}*/
+				m_VRegions->at(RegionIndex)->VRegionIndices.push_back(index);
+				//checking if the current distance is greater than the max dist (minDist is the current distance from the point)
+				if (minDist > m_VRegions->at(RegionIndex)->maxDist) {
+					m_VRegions->at(RegionIndex)->maxDist = minDist;
+				}
+			
+		}
+	}
+
+
+	if (resetMesh) {
+		for (int j = 0; j < m_terrainHeight; j++) {
+			for (int i = 0; i < m_terrainWidth; i++) {
+				int index = (j*m_terrainWidth) + i;
+				m_heightMap[index].y = 0.0f;
+
+			}
+		}
+	}
+	
+	
+	/*
+	for (int j = 0; j < m_terrainHeight; j++) {
+		for (int i = 0; i < m_terrainWidth; i++) {
+			
+			int index = (j*m_terrainWidth) + i;
+			int regionIndex = m_heightMap[index].VorData->VorPoint->RegionIndex;
+			float d = m_VRegions->at(regionIndex)->maxDist - m_heightMap[index].VorData->dist;
+
+			m_heightMap[index].y = 0;
+			if(d<15.0f)
+				m_heightMap[index].y = 5;
+		}
+	}*/
+	//Get 5 unique points
+	int numOfPlanes = 5;
+	int *n = new int[numOfPlanes];
+	for (int i = 0; i < numOfPlanes; i++) {
+		n[i] = (int)RandomFloat(0.0f, (float)numOfPoints - 1);
+		for (int j = i - 1; j > 0; j--)
+		{
+			if (n[i] == n[j])
+			{
+				i--;
+				break;
+			}
+		}
+	}
+		
+
+	//settingHeight
+	for (int planes = 0; planes < numOfPlanes; planes++) {
+		int s = m_VRegions->at(n[planes])->VRegionIndices.size();
+		for (int i = 0; i < s; i++) {
+			int index = m_VRegions->at(n[planes])->VRegionIndices.at(i);
+			if (m_heightMap[index].walkable == 0.0f) {
+				m_heightMap[index].y -= 5.0f;
+				m_heightMap[index].walkable = 1.0f;
+			}
+		}
+	}
+
+	//ReleaseVornoi();
+	
+	return;
+
+}
+void TerrainClass::ReleaseVornoi()
+{
+	if (m_VPoints) {
+		for (std::vector< VoronoiPoint* >::iterator it = m_VPoints->begin(); it != m_VPoints->end(); ++it)
+		{
+			delete (*it);
+		}
+		m_VPoints->clear();
+		delete m_VPoints;
+		m_VPoints = 0;
+	}
+	
+	if (m_VRegions) {
+		
+		/*for (int i = 0; i < m_VRegions->size(); i++)
+		{
+			for (std::vector< HeightMapType* >::iterator it = m_VRegions->at(i)->VRegions->begin(); it != m_VRegions->at(i)->VRegions->end(); ++it)
+			{
+				delete (*it);
+			}
+			m_VRegions->at(i)->VRegions->clear();
+			delete m_VRegions->at(i)->VRegions;
+			m_VRegions->at(i)->VRegions = 0;
+			
+		}*/
+		for (std::vector< VoronoiRegion* >::iterator it = m_VRegions->begin(); it != m_VRegions->end(); ++it)
+		{
+			delete (*it);
+		}
+		m_VRegions->clear();
+		delete m_VRegions;
+		m_VRegions = 0;
+	}
+
+
+
+	return;
+}
+
+bool TerrainClass::VoronoiRegions(ID3D11Device* device, bool keydown)
+{
+	bool result;
+	//the toggle is just a bool that I use to make sure this is only called ONCE when you press a key
+	//until you release the key and start again. We dont want to be generating the terrain 500
+	//times per second. 
+	if (keydown)
+	{
+
+		VoronoiRegions();
 
 		result = CalculateNormals();
 		if (!result)
@@ -455,6 +655,39 @@ bool TerrainClass::PassThroughPerlinNoise(ID3D11Device* device, bool keydown)
 	return true;
 }
 
+bool TerrainClass::PassProceduralFunction(ID3D11Device* device, bool keydown, bool (*x)())
+{
+
+	bool result;
+	//the toggle is just a bool that I use to make sure this is only called ONCE when you press a key
+	//until you release the key and start again. We dont want to be generating the terrain 500
+	//times per second. 
+	if (keydown)
+	{
+
+		x();
+
+		result = CalculateNormals();
+		if (!result)
+		{
+			return false;
+		}
+
+		// Initialize the vertex and index buffer that hold the geometry for the terrain.
+		result = InitializeBuffers(device);
+		if (!result)
+		{
+			return false;
+		}
+
+		m_terrainGeneratedToggle = true;
+	}
+	else
+	{
+		m_terrainGeneratedToggle = false;
+	}
+	return true;
+}
 
 void TerrainClass::Console()
 {
@@ -730,6 +963,12 @@ void TerrainClass::ShutdownHeightMap()
 {
 	if(m_heightMap)
 	{
+		int size = (int) sizeof(m_heightMap) / sizeof(m_heightMap[0]);
+		for (int i = 0; i < size; i++) {
+			delete m_heightMap[i].VorData;
+			m_heightMap[i].VorData = 0;
+		}
+
 		delete [] m_heightMap;
 		m_heightMap = 0;
 	}
@@ -866,6 +1105,8 @@ void TerrainClass::ReleaseTexture()
 	return;
 }
 
+
+
 bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 {
 	int index, i, j;
@@ -909,6 +1150,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
 			m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
 			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+			m_vertices[index].walkable = m_heightMap[index3].walkable;
 			index++;
 
 			// Upper right.
@@ -922,18 +1164,21 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 			m_vertices[index].texture = D3DXVECTOR2(tu, tv);
 			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+			m_vertices[index].walkable = m_heightMap[index4].walkable;
 			index++;
 
 			// Bottom left.
 			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
 			m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
 			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+			m_vertices[index].walkable = m_heightMap[index1].walkable;
 			index++;
 
 			// Bottom left.
 			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
 			m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
 			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+			m_vertices[index].walkable = m_heightMap[index1].walkable;
 			index++;
 
 			// Upper right.
@@ -947,6 +1192,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
 			m_vertices[index].texture = D3DXVECTOR2(tu, tv);
 			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+			m_vertices[index].walkable = m_heightMap[index4].walkable;
 			index++;
 
 			// Bottom right.
@@ -958,6 +1204,7 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
 			m_vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
 			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+			m_vertices[index].walkable = m_heightMap[index2].walkable;
 			index++;
 		}
 	}

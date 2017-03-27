@@ -28,11 +28,13 @@ private:
 		D3DXVECTOR3 position;
 		D3DXVECTOR2 texture;
 		D3DXVECTOR3 normal;
+		float walkable = 0.0f;
 	};
 
 	struct VectorType
 	{
 		float x, y, z;
+		float walkable = 0.0f;
 	};
 
 	struct NodeType
@@ -55,7 +57,7 @@ public:
 	void Render(FrustumClass*, ID3D11DeviceContext*, TerrainShaderClass*);
 	void ReinitializeBuffers(TerrainClass*,ID3D11Device* device);
 	int GetDrawCount();
-	bool GetHeightAtPosition(float, float, float&);
+	bool GetHeightAtPosition(float, float, float&, bool& canWalk);
 
 
 private:
@@ -66,7 +68,7 @@ private:
 	void ResetNodeBuffers(NodeType*, ID3D11Device*);
 	void ReleaseNode(NodeType*);
 	void RenderNode(NodeType*, FrustumClass*, ID3D11DeviceContext*, TerrainShaderClass*);
-	void FindNode(NodeType*, float, float, float&);
+	void FindNode(NodeType*, float, float, float&,bool& canWalk);
 	bool CheckHeightOfTriangle(float, float, float&, float[3], float[3], float[3]);
 
 

@@ -22,6 +22,7 @@ struct VertexInputType
     float4 position : POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
+	float walkable : TESSFACTOR0;
 };
 
 struct PixelInputType
@@ -29,6 +30,7 @@ struct PixelInputType
     float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
+	float4 walkable : COLOR0;
 };
 
 
@@ -54,5 +56,6 @@ PixelInputType TerrainVertexShader(VertexInputType input)
     // Normalize the normal vector.
     output.normal = normalize(output.normal);
 	output.tex = input.tex;
+	output.walkable.x = float4(input.walkable,0.0f,0.0f,0.0f);
     return output;
 }

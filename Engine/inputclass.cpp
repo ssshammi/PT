@@ -270,6 +270,12 @@ bool InputClass::IsSPressedOnce()
 	return OnPressed(DIK_S);
 }
 
+bool InputClass::IsVPressedOnce()
+{
+	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
+	return OnPressed(DIK_V);
+}
+
 bool InputClass::IsXPressedOnce()
 {
 	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.
