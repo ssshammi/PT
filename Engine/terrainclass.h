@@ -81,6 +81,7 @@ public:
 	void Faulting();
 	bool Faulting(ID3D11Device * device, bool keydown);
 	void VoronoiRegions();
+	void AddVoronoiPointAt(int index, int k);
 	bool VoronoiRegions(ID3D11Device * device, bool keydown);
 	void PassThroughPerlinNoise();
 

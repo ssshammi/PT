@@ -399,34 +399,65 @@ bool TerrainClass::Faulting(ID3D11Device* device, bool keydown)
 	return true;
 }
 
+void TerrainClass::AddVoronoiPointAt(int IndexInArray, int RegionIndex) {
+
+	VoronoiPoint* v = new VoronoiPoint;
+	VoronoiRegion* r = new VoronoiRegion;
+	v->x = m_heightMap[IndexInArray].x;
+	v->y = m_heightMap[IndexInArray].y;
+	v->z = m_heightMap[IndexInArray].z;
+	v->index = IndexInArray;
+	v->height = RegionIndex;
+	if (RegionIndex % 2 == 0)
+		v->height = -v->height;
+	v->RegionIndex = RegionIndex;
+	r->vPoint = v;
+	m_VPoints->push_back(v);
+	m_VRegions->push_back(r);
+	m_VRegions->at(RegionIndex)->maxDist = 0.0f;
+	v = 0;
+	r = 0;
+
+}
+
 void TerrainClass::VoronoiRegions() {
 	ReleaseVornoi();
 
 	m_VPoints = new vector<VoronoiPoint*>;
 	m_VRegions = new vector<VoronoiRegion*>;
-	int numOfPoints = 50;
+	int numOfPoints = 90;
 	bool resetMesh = false;
+	bool randomizePoints = false;
+	bool showFullDiagram = false;
 
-	for (int k = 0; k < numOfPoints; k++) {
-		int j =(int)RandomFloat(0,m_terrainHeight-1);
-		int i =(int)RandomFloat(0, m_terrainWidth - 1);
-		int index = (j*m_terrainWidth) + i;
-		VoronoiPoint* v = new VoronoiPoint;
-		VoronoiRegion* r = new VoronoiRegion;
-		v->x = m_heightMap[index].x;
-		v->y = m_heightMap[index].y;
-		v->z = m_heightMap[index].z;
-		v->index = index;
-		v->height = k;
-		if (k % 2 == 0)
-			v->height = -v->height;
-		v->RegionIndex = k;
-		r->vPoint = v;
-		m_VPoints->push_back(v);
-		m_VRegions->push_back(r);
-		m_VRegions->at(k)->maxDist = 0.0f;
-		v = 0;
-		r = 0;
+	if (!randomizePoints) {
+		int k = 0;
+		int pointsInCols = (int)sqrt((float)numOfPoints);
+		int inBetweens = m_terrainWidth / pointsInCols;
+		for (int j = 0; j < pointsInCols; j++){
+			for (int i = 0; i < pointsInCols; i++) {
+				int nj = (inBetweens / 2);
+				int index = ((j*inBetweens*m_terrainWidth)) + ((i*inBetweens))+nj+(nj*m_terrainWidth);	//offsetting the center of the grid so that nothing is on the edges;
+				index += (int)RandomFloat(-nj,nj);					//randomizing the locations
+				index += (int)RandomFloat(-nj, nj)*m_terrainWidth;	//randomizing the locations
+				
+					AddVoronoiPointAt(index, k);
+					k++;
+			}
+		}
+		//if (k != numOfPoints)
+			numOfPoints = k;
+	}
+	else {
+		for (int k = 0; k < numOfPoints; k++) {
+			int i = 0, j = 0, index = 0;
+
+			j = (int)RandomFloat(0, m_terrainHeight - 1);
+			i = (int)RandomFloat(0, m_terrainWidth - 1);
+			index = (j*m_terrainWidth) + i;
+
+			AddVoronoiPointAt(index, k);
+		}
 	}
 
 	//getVoronoi points
@@ -476,27 +507,25 @@ void TerrainClass::VoronoiRegions() {
 	}
 	
 	
-	/*
-	for (int j = 0; j < m_terrainHeight; j++) {
-		for (int i = 0; i < m_terrainWidth; i++) {
-			
-			int index = (j*m_terrainWidth) + i;
-			int regionIndex = m_heightMap[index].VorData->VorPoint->RegionIndex;
-			float d = m_VRegions->at(regionIndex)->maxDist - m_heightMap[index].VorData->dist;
-
-			m_heightMap[index].y = 0;
-			if(d<15.0f)
-				m_heightMap[index].y = 5;
-		}
-	}*/
 	//Get 5 unique points
 	int numOfPlanes = 5;
 	int *n = new int[numOfPlanes];
+	int numOfRows = sqrt(numOfPoints);
 	for (int i = 0; i < numOfPlanes; i++) {
 		n[i] = (int)RandomFloat(0.0f, (float)numOfPoints - 1);
+		if ((n[i] >= 0 &&n[i]<=numOfRows)|| (n[i] <= numOfPoints-1 && n[i] >= numOfPoints - numOfRows)) //Up and down borders
+		{
+			i--;
+			continue;
+		}
+		if ((n[i]%numOfRows ==0) || (n[i] % numOfRows == numOfRows-1)) //Left Right Border
+		{
+			i--;
+			continue;
+		}
 		for (int j = i - 1; j > 0; j--)
 		{
-			if (n[i] == n[j])
+			if (n[i] == n[j])// || n[i+1] == n[j] || n[i+1] == n[j] || n[i + numOfPoints] == n[j] || n[i-numOfPoints] == n[j] || n[i - numOfPoints+1] == n[j] || n[i - numOfPoints-1] == n[j] || n[i +1+ numOfPoints] == n[j]|| n[i -1]+ numOfPoints == n[j])
 			{
 				i--;
 				break;
@@ -506,13 +535,28 @@ void TerrainClass::VoronoiRegions() {
 		
 
 	//settingHeight
-	for (int planes = 0; planes < numOfPlanes; planes++) {
-		int s = m_VRegions->at(n[planes])->VRegionIndices.size();
-		for (int i = 0; i < s; i++) {
-			int index = m_VRegions->at(n[planes])->VRegionIndices.at(i);
-			if (m_heightMap[index].walkable == 0.0f) {
-				m_heightMap[index].y -= 5.0f;
-				m_heightMap[index].walkable = 1.0f;
+
+	if (showFullDiagram) {
+		for (int j = 0; j < m_terrainHeight; j++) {
+			for (int i = 0; i < m_terrainWidth; i++) {
+
+				int index = (j*m_terrainWidth) + i;
+				int regionIndex = m_heightMap[index].VorData->VorPoint->RegionIndex;
+				
+				m_heightMap[index].y = 0;
+				m_heightMap[index].y = m_heightMap[index].VorData->VorPoint->RegionIndex;
+			}
+		}
+	}
+	else {
+		for (int planes = 0; planes < numOfPlanes; planes++) {
+			int s = m_VRegions->at(n[planes])->VRegionIndices.size();
+			for (int i = 0; i < s; i++) {
+				int index = m_VRegions->at(n[planes])->VRegionIndices.at(i);
+				if (m_heightMap[index].walkable == 0.0f) {
+					m_heightMap[index].y -= 5.0f;
+					m_heightMap[index].walkable = 1.0f;
+				}
 			}
 		}
 	}
