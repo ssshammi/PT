@@ -47,6 +47,7 @@ public:
 	bool IsSpacePressed();
 	bool IsSPressedOnce();
 	bool IsVPressedOnce();
+	bool IsRPressedOnce();
 	bool IsXPressedOnce();
 	bool IsFPressedOnce();
 	bool IsEscapePressed();

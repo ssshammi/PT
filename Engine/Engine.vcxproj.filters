@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\DelaunayTriangles">
+      <UniqueIdentifier>{ee943a6f-dc5d-4dca-b693-1cebe9355602}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DelaunayTriangles">
+      <UniqueIdentifier>{860c63c5-7775-44f0-9a34-bb5118ae088b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="applicationclass.cpp">
@@ -87,6 +93,12 @@
     <ClCompile Include="quadtreeclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DelaunayTriangles\delaunay.cpp">
+      <Filter>Source Files\DelaunayTriangles</Filter>
+    </ClCompile>
+    <ClCompile Include="DelaunayTriangles\triangle.cpp">
+      <Filter>Source Files\DelaunayTriangles</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -160,6 +172,18 @@
     </ClInclude>
     <ClInclude Include="Voronoi.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DelaunayTriangles\delaunay.h">
+      <Filter>Header Files\DelaunayTriangles</Filter>
+    </ClInclude>
+    <ClInclude Include="DelaunayTriangles\edge.h">
+      <Filter>Header Files\DelaunayTriangles</Filter>
+    </ClInclude>
+    <ClInclude Include="DelaunayTriangles\triangle.h">
+      <Filter>Header Files\DelaunayTriangles</Filter>
+    </ClInclude>
+    <ClInclude Include="DelaunayTriangles\vector2.h">
+      <Filter>Header Files\DelaunayTriangles</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

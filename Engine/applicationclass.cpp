@@ -494,6 +494,13 @@ bool ApplicationClass::HandleInput(float frameTime)
 
 	// Set the frame time for calculating the updated position.
 	m_Position->SetFrameTime(frameTime);
+	
+	//Refresh Terrain
+	keyDown = m_Input->IsRPressedOnce();
+	if (keyDown) { 
+		m_Terrain->RefreshTerrain(m_Direct3D->GetDevice(), keyDown);
+		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+	}
 
 	//Randomized Noise
 	keyDown = m_Input->IsSpacePressed();

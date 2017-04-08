@@ -6,7 +6,10 @@
 #include "PerlinNoise.h"
 #include <iostream>
 #include <Windows.h>
+#include <algorithm>
 #include "textclass.h"
+
+
 
 TerrainClass::TerrainClass()
 {
@@ -173,6 +176,44 @@ void TerrainClass::Render(ID3D11DeviceContext* deviceContext)
 	return;
 }
 
+
+bool TerrainClass::RefreshTerrain(ID3D11Device* device, bool keydown)
+{
+	bool result;
+	//the toggle is just a bool that I use to make sure this is only called ONCE when you press a key
+	//until you release the key and start again. We dont want to be generating the terrain 500
+	//times per second. 
+	if (keydown)
+	{
+		int index = 0;
+		for (int j = 0; j<m_terrainHeight; j++)
+		{
+			for (int i = 0; i<m_terrainWidth; i++)
+			{
+				index = (m_terrainHeight * j) + i;
+
+				m_heightMap[index].x = (float)i;
+				m_heightMap[index].y = 0.0f;//(float)((rand()%15));//(float)(cos((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
+				m_heightMap[index].z = (float)j;
+				m_heightMap[index].walkable = 0.0f;
+			}
+		}
+
+		result = CalculateNormals();
+		if (!result){return false;}
+
+		// Initialize the vertex and index buffer that hold the geometry for the terrain.
+		result = InitializeBuffers(device);
+		if (!result){return false;}
+
+		m_terrainGeneratedToggle = true;
+	}
+	else
+	{
+		m_terrainGeneratedToggle = false;
+	}
+	return true;
+}
 
 
 bool TerrainClass::GenerateHeightMap(ID3D11Device* device, bool keydown)
@@ -345,7 +386,7 @@ void TerrainClass::Faulting()
 	{
 		for (int i = 0; i < m_terrainWidth; i++)
 		{
-			index = (m_terrainHeight * j) + i;
+			index = (m_terrainWidth * j) + i;
 
 			bool eq = (float)j > ((float)i*m)+b;
 			if (eq) 
@@ -508,24 +549,24 @@ void TerrainClass::VoronoiRegions() {
 	
 	
 	//Get 5 unique points
-	int numOfPlanes = 5;
+	int numOfPlanes = 9;
 	int *n = new int[numOfPlanes];
 	int numOfRows = sqrt(numOfPoints);
 	for (int i = 0; i < numOfPlanes; i++) {
-		n[i] = (int)RandomFloat(0.0f, (float)numOfPoints - 1);
-		if ((n[i] >= 0 &&n[i]<=numOfRows)|| (n[i] <= numOfPoints-1 && n[i] >= numOfPoints - numOfRows)) //Up and down borders
+		n[i] = (int)RandomFloat(numOfRows+1, (float)numOfPoints - numOfRows - 1);
+		/*if ((n[i] >= 0 &&n[i]<=numOfRows)|| (n[i] <= numOfPoints-1 && n[i] >= numOfPoints - numOfRows)) //Up and down borders
 		{
 			i--;
 			continue;
-		}
+		}*/
 		if ((n[i]%numOfRows ==0) || (n[i] % numOfRows == numOfRows-1)) //Left Right Border
 		{
 			i--;
 			continue;
 		}
-		for (int j = i - 1; j > 0; j--)
+		for (int j = i - 1; j >= 0; j--)
 		{
-			if (n[i] == n[j])// || n[i+1] == n[j] || n[i+1] == n[j] || n[i + numOfPoints] == n[j] || n[i-numOfPoints] == n[j] || n[i - numOfPoints+1] == n[j] || n[i - numOfPoints-1] == n[j] || n[i +1+ numOfPoints] == n[j]|| n[i -1]+ numOfPoints == n[j])
+			if (n[i] == n[j] || n[i]+1 == n[j] || n[i]-1 == n[j] || n[i] + numOfRows == n[j] || n[i]- numOfRows == n[j] || n[i] - numOfRows +1 == n[j] || n[i] - numOfRows -1 == n[j] || n[i] +1+ numOfRows == n[j]|| n[i] -1+ numOfRows == n[j])
 			{
 				i--;
 				break;
@@ -533,6 +574,11 @@ void TerrainClass::VoronoiRegions() {
 		}
 	}
 		
+
+	for (int planes = 0; planes < numOfPlanes; planes++) {
+		m_rooms.push_back(m_VRegions->at(n[planes]));
+		//m_heightMap[m_rooms.at(planes)->vPoint->index].y = 50.0f;
+	}
 
 	//settingHeight
 
@@ -560,12 +606,157 @@ void TerrainClass::VoronoiRegions() {
 			}
 		}
 	}
-
 	//ReleaseVornoi();
-	
+	DelanuayTriangles();
 	return;
 
 }
+
+void TerrainClass::DelanuayTriangles() {
+	//If VoronoiRegions exists
+	if (m_VRegions) {
+		//adding points to algorithm
+		vector<Vec2f> points;
+		int nPoints = m_rooms.size();
+		for (int i = 0; i <nPoints; i++) {
+			points.push_back(Vec2f(m_rooms.at(i)->vPoint->x, m_rooms.at(i)->vPoint->z,i));
+		}
+		//using algorithm to get delaunay triangluation
+		Delaunay triangulation;
+		vector<Triangle> triangles = triangulation.triangulate(points);
+		vector<Edge> edges = triangulation.getEdges();
+		
+		//obtaining weights of edges as distances between points
+		int nEdges = edges.size();
+		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
+			e->weight = sqrt(pow(e->p2.x - e->p1.x,2)+ pow(e->p2.y - e->p1.y, 2));
+		}
+
+
+		//sorting the edges array according to weights
+		//std::sort(edges.begin(), edges.end());
+
+		//finding minimum spanning tree from graph obtaned in delaunay using Prim's Algorithm
+		vector<Edge*> minSpanTree;
+
+		
+
+		//Adding the edges to the Adgecency matrix
+		Edge*** A = new Edge**[nPoints];
+		for (int i = 0; i < nPoints; i++) {
+			A[i] = new Edge*[nPoints];
+			for (int j = i; j < nPoints; j++) {
+				A[i][j] = 0;
+				for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
+					if  ((e->p1.index == i && e->p2.index == j) || (e->p1.index == j&&e->p2.index == i))
+					{
+						A[i][j] = e._Ptr;
+						break;
+					}
+				}
+			}
+		}
+
+		vector<Edge*> processing;
+		//Using Adgesency matrix to find the minimum spanning tree
+		for (int i = 0; i < nPoints; i++) {
+			for (int j = i; j < nPoints; j++) {
+				if (A[i][j]) {
+					processing.push_back(A[i][j]);
+				}
+			}
+			Edge* minptr = processing.at(0);
+			int loc = 0;
+			for (int k = 0; k < processing.size();k++) {
+				if (!processing.at(k)->used && processing.at(k) < minptr) {
+					minptr = processing.at(k);
+					loc = k;
+				}
+			}
+			minptr->used = true;
+			minSpanTree.push_back(minptr);
+			processing.erase(processing.begin() + loc);
+
+			if (minSpanTree.size() == nPoints - 1) {
+				minptr = 0;
+				break;
+			}
+		}
+
+		processing.clear();
+
+		makeCorridors(minSpanTree);
+
+		//release Data
+		points.clear();
+		for (int i = 0; i < nPoints; i++) {
+			delete[] A[i];
+			A[i] = 0;
+		}
+		delete[] A;
+		A = 0;
+
+		minSpanTree.clear();
+
+		triangles.clear();
+
+		edges.clear();
+		
+
+
+	}
+	return;
+
+}
+
+void TerrainClass::makeCorridors(const vector<Edge*> &tree) {
+	for (int i = 0; i < tree.size(); i++) {
+		//getting index of the point and accessing the index in terms for the heightmap
+		int p1Index =  m_rooms.at(tree.at(i)->p1.index)->vPoint->index ;
+		int p2Index = m_rooms.at(tree.at(i)->p2.index)->vPoint->index;
+		m_heightMap[p1Index].y = 20.0f;
+		m_heightMap[p2Index].y = 20.0f;
+
+		//obtaining x1 nad y1 from the given index
+		int x1 = p1Index % (m_terrainHeight), x2 = p2Index % (m_terrainHeight);
+		int y1 = p1Index / m_terrainHeight, y2 = p2Index / m_terrainHeight;
+		int ycol = y1, xcol = x1;
+		bool yswap = false, xswap = false;
+		//checking which one is smaller
+		if (x1 > x2) {
+			int temp = x1;
+			x1 = x2;
+			x2 = temp;
+			ycol = y2;
+			xswap = true;
+		}
+
+		if (y1 > y2) {
+			int temp = y1;
+			y1 = y2;
+			y2 = temp;
+			xcol = x2;
+			yswap = true;
+		}
+		
+		//creating columns
+		for (int j = x1; j < x2; j++)
+		{
+			m_heightMap[(ycol*m_terrainHeight) + j].walkable = 1.0f;
+			//m_heightMap[y2*m_terrainWidth + j].y = -5.0f;
+		}
+		for (int j = y1; j < y2; j++)
+		{
+			m_heightMap[(j*m_terrainHeight) + xcol].walkable = 1.0f;
+			//m_heightMap[j*m_terrainWidth + x2].y = -5.0f;
+		}
+
+	}
+	
+	return;
+}
+
+
 void TerrainClass::ReleaseVornoi()
 {
 	if (m_VPoints) {
@@ -579,7 +770,6 @@ void TerrainClass::ReleaseVornoi()
 	}
 	
 	if (m_VRegions) {
-		
 		/*for (int i = 0; i < m_VRegions->size(); i++)
 		{
 			for (std::vector< HeightMapType* >::iterator it = m_VRegions->at(i)->VRegions->begin(); it != m_VRegions->at(i)->VRegions->end(); ++it)
@@ -600,6 +790,9 @@ void TerrainClass::ReleaseVornoi()
 		m_VRegions = 0;
 	}
 
+	if (!m_rooms.empty()) {
+		m_rooms.clear();
+	}
 
 
 	return;

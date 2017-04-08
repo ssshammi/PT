@@ -15,6 +15,10 @@
 
 #include "textureclass.h"
 
+#include "DelaunayTriangles/vector2.h"
+#include "DelaunayTriangles/triangle.h"
+#include "DelaunayTriangles/delaunay.h"
+
 using namespace std;
 //globals
 const int TEXTURE_REPEAT = 8;
@@ -75,6 +79,7 @@ public:
 	bool InitializeTerrain(ID3D11Device*, int terrainWidth, int terrainHeight, WCHAR*, WCHAR*, WCHAR*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
+	bool RefreshTerrain(ID3D11Device * device, bool keydown);
 	bool GenerateHeightMap(ID3D11Device* device, bool keydown);
 	bool SmoothTerrain(ID3D11Device* device, bool keydown);
 	void SmoothTerrain(int n);
@@ -83,6 +88,10 @@ public:
 	void VoronoiRegions();
 	void AddVoronoiPointAt(int index, int k);
 	bool VoronoiRegions(ID3D11Device * device, bool keydown);
+	void DelanuayTriangles();
+	void makeCorridors(const vector<Edge*> &tree);
+
+
 	void PassThroughPerlinNoise();
 
 	float RandomFloat(float a, float b);
@@ -126,6 +135,9 @@ private:
 	TextureClass  *m_GrassTexture,*m_SlopeTexture, *m_RockTexture;
 	vector<VoronoiRegion*> *m_VRegions;
 	vector<VoronoiPoint*> *m_VPoints;
+	vector<VoronoiRegion*> m_rooms;
+
+
 };
 
 #endif

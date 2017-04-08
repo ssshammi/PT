@@ -90,6 +90,8 @@
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="cpuclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
+    <ClCompile Include="DelaunayTriangles\delaunay.cpp" />
+    <ClCompile Include="DelaunayTriangles\triangle.cpp" />
     <ClCompile Include="fontclass.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsclass.cpp" />
@@ -116,6 +118,10 @@
     <ClInclude Include="cameraclass.h" />
     <ClInclude Include="cpuclass.h" />
     <ClInclude Include="d3dclass.h" />
+    <ClInclude Include="DelaunayTriangles\delaunay.h" />
+    <ClInclude Include="DelaunayTriangles\edge.h" />
+    <ClInclude Include="DelaunayTriangles\triangle.h" />
+    <ClInclude Include="DelaunayTriangles\vector2.h" />
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />
     <ClInclude Include="fpsclass.h" />
