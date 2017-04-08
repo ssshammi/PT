@@ -634,12 +634,34 @@ void TerrainClass::DelanuayTriangles() {
 
 
 		//sorting the edges array according to weights
-		//std::sort(edges.begin(), edges.end());
+		std::sort(edges.begin(), edges.end());
 
 		//finding minimum spanning tree from graph obtaned in delaunay using Prim's Algorithm
 		vector<Edge*> minSpanTree;
+		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
+			minSpanTree.push_back(e._Ptr);
+			/*
+			if (isCircular(minSpanTree)) {
+				minSpanTree.pop_back();
+				//m_heightMap[0].y -= 1.0f;
+			}
 
-		
+			if (minSpanTree.size() == nPoints-1)
+				break;		//enough points obtained
+			*/
+		}
+		ofstream fout;
+		fout.open("../Engine/Debug/Debug.txt");
+		for(std::vector< Edge* >::iterator e = minSpanTree.begin(); e != minSpanTree.end(); ++e) {
+			fout << (*e)->p1.index << "  ";
+			fout << (*e)->p2.index <<endl;
+		}
+		fout.close();
+
+
+
+#pragma region AdjesencyMatrix_Sucks
+		/*
 
 		//Adding the edges to the Adgecency matrix
 		Edge*** A = new Edge**[nPoints];
@@ -648,7 +670,7 @@ void TerrainClass::DelanuayTriangles() {
 			for (int j = i; j < nPoints; j++) {
 				A[i][j] = 0;
 				for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
-					if  ((e->p1.index == i && e->p2.index == j) || (e->p1.index == j&&e->p2.index == i))
+					if ((e->p1.index == i && e->p2.index == j) || (e->p1.index == j&&e->p2.index == i))
 					{
 						A[i][j] = e._Ptr;
 						break;
@@ -667,7 +689,7 @@ void TerrainClass::DelanuayTriangles() {
 			}
 			Edge* minptr = processing.at(0);
 			int loc = 0;
-			for (int k = 0; k < processing.size();k++) {
+			for (int k = 0; k < processing.size(); k++) {
 				if (!processing.at(k)->used && processing.at(k) < minptr) {
 					minptr = processing.at(k);
 					loc = k;
@@ -684,17 +706,23 @@ void TerrainClass::DelanuayTriangles() {
 		}
 
 		processing.clear();
+		*/
+#pragma endregion
 
 		makeCorridors(minSpanTree);
 
 		//release Data
 		points.clear();
-		for (int i = 0; i < nPoints; i++) {
-			delete[] A[i];
-			A[i] = 0;
-		}
-		delete[] A;
-		A = 0;
+#pragma region AdjesencyMatrixRelease_Sucks
+		/*
+for (int i = 0; i < nPoints; i++) {
+	delete[] A[i];
+	A[i] = 0;
+}
+delete[] A;
+A = 0;*/
+#pragma endregion
+
 
 		minSpanTree.clear();
 
@@ -708,6 +736,79 @@ void TerrainClass::DelanuayTriangles() {
 	return;
 
 }
+
+bool TerrainClass::isCircular(vector<Edge*> &edges) {
+	int nPoints = m_rooms.size();
+#pragma region creatingAdjList
+	
+	
+	//Create Adjesency list
+	vector<Vec2f> **adj = new vector<Vec2f>*[nPoints];
+	for (int i = 0; i < nPoints; i++) {
+		adj[i] = new vector<Vec2f>;
+	}
+
+	for (std::vector< Edge* >::iterator e = edges.begin(); e != edges.end(); ++e) {
+		for (int i = 0; i < nPoints; i++) {
+			if ((*e)->p1.index == i) {
+				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p2) == adj[i]->end())	//element p2 not found in adj list
+					adj[i]->push_back((*e)->p2);
+			}
+			else if ((*e)->p2.index == i) {
+				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p1) == adj[i]->end())	//element p1 not found in adj list
+					adj[i]->push_back((*e)->p1);
+			}
+		}
+	}
+
+#pragma endregion
+
+	bool *visited = new bool[nPoints];
+		
+		for (int i = 0; i < sizeof(visited) / sizeof(bool); i++)
+			visited[i] = false;
+
+		if (isCircular((edges.back())->p1.index, visited, adj, -1)) {
+			return true;
+		}
+
+		delete[] visited;
+		visited = 0;
+	
+
+	//releasing memory before leaving
+	for (int i = 0; i < nPoints; i++) {
+		adj[i]->clear();
+		
+	}
+	delete[] adj;
+	adj = 0;
+
+	//returning false if no circularity
+	return false;
+}
+
+bool TerrainClass::isCircular(int v, bool* visited, vector<Vec2f,allocator<Vec2f>> **adj, int parent) {
+	
+	visited[v] = true;
+
+	for (vector<Vec2f>::iterator i = adj[v]->begin(); i != adj[v]->end(); ++i) {
+		int ind = (*i).index;
+		if (!visited[ind])
+		{
+			if (isCircular(ind, visited, adj, v))
+				return true;
+		}
+		else	if (ind != parent)
+				return true;
+	}
+
+
+
+	return false;
+	
+}
+
 
 void TerrainClass::makeCorridors(const vector<Edge*> &tree) {
 	for (int i = 0; i < tree.size(); i++) {
@@ -735,7 +836,8 @@ void TerrainClass::makeCorridors(const vector<Edge*> &tree) {
 			int temp = y1;
 			y1 = y2;
 			y2 = temp;
-			xcol = x2;
+			if(!xswap)
+				xcol = x2;
 			yswap = true;
 		}
 		
