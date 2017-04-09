@@ -64,9 +64,9 @@ d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\
 d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(554): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
 d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(556): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(593): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
-d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(814): warning C4018: '<': signed/unsigned mismatch
-d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(953): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(1035): warning C4996: 'freopen': This function or variable may be unsafe. Consider using freopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(838): warning C4018: '<': signed/unsigned mismatch
+d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(1014): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+d:\assigments\personal projects\visual studio projects\proceduralterrain\engine\terrainclass.cpp(1096): warning C4996: 'freopen': This function or variable may be unsafe. Consider using freopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(240): note: see declaration of 'freopen'
   Engine.vcxproj -> D:\Assigments\Personal Projects\Visual Studio Projects\proceduralTerrain\Debug\Engine.exe
   Engine.vcxproj -> D:\Assigments\Personal Projects\Visual Studio Projects\proceduralTerrain\Debug\Engine.pdb (Full PDB)

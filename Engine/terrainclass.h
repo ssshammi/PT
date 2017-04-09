@@ -90,7 +90,7 @@ public:
 	bool VoronoiRegions(ID3D11Device * device, bool keydown);
 	void DelanuayTriangles();
 	bool isCircular(vector<Edge*>& edges);
-	bool isCircular(int v, bool* visited, vector<Vec2f, allocator<Vec2f>> **adj, int parent);	//This one is used for recursion
+	bool isCircular(int v, bool visited[], vector<int, allocator<int>> **adj, int parent);	//This one is used for recursion
 	void makeCorridors(const vector<Edge*> &tree);
 
 

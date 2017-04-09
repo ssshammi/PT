@@ -65,7 +65,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 	}
 
 	//PassThroughPerlinNoise();
-	//VoronoiRegions();
+	VoronoiRegions();
 
 	//even though we are generating a flat terrain, we still need to normalise it. 
 	// Calculate the normals for the terrain data.
@@ -549,7 +549,7 @@ void TerrainClass::VoronoiRegions() {
 	
 	
 	//Get 5 unique points
-	int numOfPlanes = 9;
+	int numOfPlanes = 10;
 	int *n = new int[numOfPlanes];
 	int numOfRows = sqrt(numOfPoints);
 	for (int i = 0; i < numOfPlanes; i++) {
@@ -639,16 +639,28 @@ void TerrainClass::DelanuayTriangles() {
 		//finding minimum spanning tree from graph obtaned in delaunay using Prim's Algorithm
 		vector<Edge*> minSpanTree;
 		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
-			minSpanTree.push_back(e._Ptr);
-			/*
-			if (isCircular(minSpanTree)) {
-				minSpanTree.pop_back();
-				//m_heightMap[0].y -= 1.0f;
+			bool duplicate = false;
+			//check for duplicates
+			for (std::vector< Edge* >::iterator m = minSpanTree.begin(); m != minSpanTree.end(); ++m) {
+				if ((*m)->p1 == (e->p1) && (*m)->p2 == (e->p2) || (*m)->p1 == (e->p2) && (*m)->p2 == (e->p1)) {
+					duplicate = true;
+					break;
+				}
 			}
 
-			if (minSpanTree.size() == nPoints-1)
-				break;		//enough points obtained
-			*/
+			//if its not a duplicate
+			if (!duplicate) {
+				minSpanTree.push_back(e._Ptr);
+
+				if (isCircular(minSpanTree)) {
+					minSpanTree.pop_back();
+					//m_heightMap[0].y -= 1.0f;
+				}
+
+				if (minSpanTree.size() == nPoints - 1)
+					break;		//enough points obtained
+			}
+			
 		}
 		ofstream fout;
 		fout.open("../Engine/Debug/Debug.txt");
@@ -743,29 +755,41 @@ bool TerrainClass::isCircular(vector<Edge*> &edges) {
 	
 	
 	//Create Adjesency list
-	vector<Vec2f> **adj = new vector<Vec2f>*[nPoints];
+	vector<int> **adj = new vector<int>*[nPoints];
 	for (int i = 0; i < nPoints; i++) {
-		adj[i] = new vector<Vec2f>;
+		adj[i] = new vector<int>;
 	}
 
 	for (std::vector< Edge* >::iterator e = edges.begin(); e != edges.end(); ++e) {
 		for (int i = 0; i < nPoints; i++) {
 			if ((*e)->p1.index == i) {
-				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p2) == adj[i]->end())	//element p2 not found in adj list
-					adj[i]->push_back((*e)->p2);
+				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p2.index) == adj[i]->end())	//element p2 not found in adj list
+					adj[i]->push_back((*e)->p2.index);
 			}
 			else if ((*e)->p2.index == i) {
-				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p1) == adj[i]->end())	//element p1 not found in adj list
-					adj[i]->push_back((*e)->p1);
+				if (std::find(adj[i]->begin(), adj[i]->end(), (*e)->p1.index) == adj[i]->end())	//element p1 not found in adj list
+					adj[i]->push_back((*e)->p1.index);
 			}
 		}
+
+		
 	}
 
+	ofstream fout;
+	fout.open("../Engine/Debug/Adj.txt");
+	for (int i = 0; i < nPoints; i++) {
+		for (std::vector< int >::iterator e = adj[i]->begin(); e != adj[i]->end(); ++e) {
+			fout << (*e) << "  ";
+		}
+		fout << endl;
+	}
+	fout.close();
+	//return false;
 #pragma endregion
 
 	bool *visited = new bool[nPoints];
 		
-		for (int i = 0; i < sizeof(visited) / sizeof(bool); i++)
+		for (int i = 0; i < nPoints; i++)
 			visited[i] = false;
 
 		if (isCircular((edges.back())->p1.index, visited, adj, -1)) {
@@ -788,12 +812,12 @@ bool TerrainClass::isCircular(vector<Edge*> &edges) {
 	return false;
 }
 
-bool TerrainClass::isCircular(int v, bool* visited, vector<Vec2f,allocator<Vec2f>> **adj, int parent) {
+bool TerrainClass::isCircular(int v, bool visited[], vector<int,allocator<int>> **adj, int parent) {
 	
 	visited[v] = true;
 
-	for (vector<Vec2f>::iterator i = adj[v]->begin(); i != adj[v]->end(); ++i) {
-		int ind = (*i).index;
+	for (vector<int>::iterator i = adj[v]->begin(); i != adj[v]->end(); ++i) {
+		int ind = (*i);
 		if (!visited[ind])
 		{
 			if (isCircular(ind, visited, adj, v))
@@ -815,20 +839,20 @@ void TerrainClass::makeCorridors(const vector<Edge*> &tree) {
 		//getting index of the point and accessing the index in terms for the heightmap
 		int p1Index =  m_rooms.at(tree.at(i)->p1.index)->vPoint->index ;
 		int p2Index = m_rooms.at(tree.at(i)->p2.index)->vPoint->index;
-		m_heightMap[p1Index].y = 20.0f;
-		m_heightMap[p2Index].y = 20.0f;
-
+		
 		//obtaining x1 nad y1 from the given index
 		int x1 = p1Index % (m_terrainHeight), x2 = p2Index % (m_terrainHeight);
 		int y1 = p1Index / m_terrainHeight, y2 = p2Index / m_terrainHeight;
-		int ycol = y1, xcol = x1;
+		int ycol1 = y1,ycol2 = y2, xcol1 = x1, xcol2 = x2;
 		bool yswap = false, xswap = false;
 		//checking which one is smaller
 		if (x1 > x2) {
 			int temp = x1;
 			x1 = x2;
 			x2 = temp;
-			ycol = y2;
+			/*xcol1 = x2;
+			xcol2 = x1;
+			*/
 			xswap = true;
 		}
 
@@ -836,23 +860,60 @@ void TerrainClass::makeCorridors(const vector<Edge*> &tree) {
 			int temp = y1;
 			y1 = y2;
 			y2 = temp;
-			if(!xswap)
-				xcol = x2;
+			/*ycol1 = y2;
+			ycol2 = y1;
+			*/
 			yswap = true;
 		}
-		
-		//creating columns
-		for (int j = x1; j < x2; j++)
-		{
-			m_heightMap[(ycol*m_terrainHeight) + j].walkable = 1.0f;
-			//m_heightMap[y2*m_terrainWidth + j].y = -5.0f;
+		/*if (xswap && !yswap) {
+			ycol1 = y2;
+			ycol2 = y1;
 		}
-		for (int j = y1; j < y2; j++)
+		if (yswap && !xswap) {
+			xcol1 = x2;
+			xcol2 = x1;
+		}*/
+
+		
+#pragma region DrawingLines
+		/*
+		float m = ((float)(ycol2 - ycol1)) / ((float)(xcol2 - xcol1));
+		float b = (float)ycol1 - (((float)xcol1)*m);
+		for (int j = y1; j <= y2; j++)
+			for (int k = x1; k <= x2; k++) {
+				bool eq = ((float)j >= ((float)k*m) + b) && ((float)j <= ((float)k*m) + b + 3);
+				if (eq) {
+					if (m_heightMap[j*m_terrainHeight + k].walkable == 0.0f) {
+						m_heightMap[j*m_terrainHeight + k].walkable = 1.0f;
+						m_heightMap[j*m_terrainHeight + k].y -= 5.0f;
+					}
+				}
+			}*/
+#pragma endregion
+
+		//creating columns
+		for (int j = x1; j <= x2; j++)
 		{
-			m_heightMap[(j*m_terrainHeight) + xcol].walkable = 1.0f;
-			//m_heightMap[j*m_terrainWidth + x2].y = -5.0f;
+			//giving it a height using the original position of y2
+			for (int k = ycol2 - 2; k < ycol2 + 2; k++) {
+				if (m_heightMap[(k*m_terrainHeight) + j].walkable == 0.0f) {
+					m_heightMap[(k*m_terrainHeight) + j].walkable = 1.0f;
+					m_heightMap[(k*m_terrainHeight) + j].y -= 5;
+				}
+			}
+		}
+		for (int j = y1; j <= y2; j++)
+		{
+			//giving it a width using the original position of x1
+			for (int k = xcol1 - 2; k < xcol1 + 2; k++) {
+				if (m_heightMap[(j*m_terrainHeight) + k].walkable == 0.0f) {
+					m_heightMap[(j*m_terrainHeight) + k].walkable = 1.0f;
+					m_heightMap[(j*m_terrainHeight) + k].y -= 5;
+				}
+			}
 		}
 
+		
 	}
 	
 	return;
