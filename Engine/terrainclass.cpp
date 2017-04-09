@@ -195,7 +195,7 @@ bool TerrainClass::RefreshTerrain(ID3D11Device* device, bool keydown)
 				index = (m_terrainHeight * j) + i;
 
 				m_heightMap[index].x = (float)i;
-				m_heightMap[index].y = 0.0f;//(float)((rand()%15));//(float)(cos((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
+				m_heightMap[index].y = 0.0f;
 				m_heightMap[index].z = (float)j;
 				m_heightMap[index].walkable = 0.0f;
 			}
