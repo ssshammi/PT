@@ -505,7 +505,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 	//Randomized Noise
 	keyDown = m_Input->IsSpacePressed();
 	if(keyDown){
-		m_Terrain->GenerateHeightMap(m_Direct3D->GetDevice(), keyDown);
+		m_Terrain->AddRandomNoise(m_Direct3D->GetDevice(), keyDown);
 		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
 	}
 

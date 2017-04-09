@@ -99,6 +99,9 @@
     <ClCompile Include="DelaunayTriangles\triangle.cpp">
       <Filter>Source Files\DelaunayTriangles</Filter>
     </ClCompile>
+    <ClCompile Include="Voronoi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">

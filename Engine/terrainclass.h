@@ -11,13 +11,11 @@
 #include <d3d11.h>
 #include <d3dx10math.h>
 #include <stdio.h>
-#include <vector>
 
 #include "textureclass.h"
 
-#include "DelaunayTriangles/vector2.h"
-#include "DelaunayTriangles/triangle.h"
-#include "DelaunayTriangles/delaunay.h"
+
+#include "Voronoi.h"
 
 using namespace std;
 //globals
@@ -29,46 +27,25 @@ const int TEXTURE_REPEAT = 8;
 class TerrainClass
 {
 private:
-	struct VertexType
-	{
-		D3DXVECTOR3 position;
-		D3DXVECTOR2 texture;
-	    D3DXVECTOR3 normal;
-		float walkable = 0.0f;
-	};
+	
 
 	struct VectorType
 	{
 		float x, y, z;
 	};
 
-	struct VoronoiPoint {
-		float x, y, z;
-		int index;
-		float height;
-		int RegionIndex;
-	};
-
-	struct VoronoiData {
-		VoronoiPoint* VorPoint;
-		float dist;
-	};
 
 
-	struct HeightMapType 
-	{ 
-		float x, y, z;
-		float tu, tv;
-		float nx, ny, nz;
-		VoronoiData *VorData;
+public:
+	struct VertexType
+	{
+		D3DXVECTOR3 position;
+		D3DXVECTOR2 texture;
+		D3DXVECTOR3 normal;
 		float walkable = 0.0f;
 	};
 
-	struct VoronoiRegion {
-		vector<int> VRegionIndices;
-		float maxDist = 0.0f;
-		VoronoiPoint* vPoint;
-	};
+
 
 public:
 	TerrainClass();
@@ -80,18 +57,17 @@ public:
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool RefreshTerrain(ID3D11Device * device, bool keydown);
-	bool GenerateHeightMap(ID3D11Device* device, bool keydown);
+	bool AddRandomNoise(ID3D11Device* device, bool keydown);
 	bool SmoothTerrain(ID3D11Device* device, bool keydown);
 	void SmoothTerrain(int n);
 	void Faulting();
 	bool Faulting(ID3D11Device * device, bool keydown);
-	void VoronoiRegions();
-	void AddVoronoiPointAt(int index, int k);
+
 	bool VoronoiRegions(ID3D11Device * device, bool keydown);
-	void DelanuayTriangles();
-	bool isCircular(vector<Edge*>& edges);
-	bool isCircular(int v, bool visited[], vector<int, allocator<int>> **adj, int parent);	//This one is used for recursion
-	void makeCorridors(const vector<Edge*> &tree);
+	
+	
+	void VoronoiRegions();
+	
 
 
 	void PassThroughPerlinNoise();
@@ -121,7 +97,6 @@ private:
 	void CalculateTextureCoordinates();
 	bool LoadTexture(ID3D11Device*, WCHAR*,WCHAR*,WCHAR*);
 	void ReleaseTexture();
-	void ReleaseVornoi();
 
 
 	bool InitializeBuffers(ID3D11Device*);
@@ -135,9 +110,8 @@ private:
 	VertexType* m_vertices;
 	HeightMapType* m_heightMap;
 	TextureClass  *m_GrassTexture,*m_SlopeTexture, *m_RockTexture;
-	vector<VoronoiRegion*> *m_VRegions;
-	vector<VoronoiPoint*> *m_VPoints;
 	vector<VoronoiRegion*> m_rooms;
+	Vornoi *m_vornoi;
 
 
 };
