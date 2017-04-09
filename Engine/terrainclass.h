@@ -52,24 +52,24 @@ public:
 	TerrainClass(const TerrainClass&);
 	~TerrainClass();
 
+
 	bool Initialize(ID3D11Device*, char*,WCHAR*);
 	bool InitializeTerrain(ID3D11Device*, int terrainWidth, int terrainHeight, WCHAR*, WCHAR*, WCHAR*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 	bool RefreshTerrain(ID3D11Device * device, bool keydown);
+
+	
+	void RunProceduralFunctions();
+
 	bool AddRandomNoise(ID3D11Device* device, bool keydown);
+	void AddRandomNoise();
 	bool SmoothTerrain(ID3D11Device* device, bool keydown);
 	void SmoothTerrain(int n);
 	void Faulting();
 	bool Faulting(ID3D11Device * device, bool keydown);
-
 	bool VoronoiRegions(ID3D11Device * device, bool keydown);
-	
-	
 	void VoronoiRegions();
-	
-
-
 	void PassThroughPerlinNoise();
 
 	float RandomFloat(float a, float b);

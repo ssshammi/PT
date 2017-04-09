@@ -63,8 +63,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 		}
 	}
 
-	//PassThroughPerlinNoise();
-	VoronoiRegions();
+	RunProceduralFunctions();
 
 	//even though we are generating a flat terrain, we still need to normalise it. 
 	// Calculate the normals for the terrain data.
@@ -94,6 +93,24 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 
 	return true;
 }
+
+void TerrainClass::RunProceduralFunctions() {
+
+	PassThroughPerlinNoise();
+
+	for (int i = 0; i < 45; i++) 
+		Faulting();
+
+	for (int i = 0; i < 4; i++)
+		AddRandomNoise();	
+
+
+	SmoothTerrain(20);
+	
+	VoronoiRegions();
+}
+
+
 bool TerrainClass::Initialize(ID3D11Device* device, char* heightMapFilename, WCHAR* textureFilename)
 {
 	bool result;
@@ -218,6 +235,28 @@ bool TerrainClass::RefreshTerrain(ID3D11Device* device, bool keydown)
 }
 
 
+void TerrainClass::AddRandomNoise() {
+	int index;
+	float height = 0.0;
+
+
+	//loop through the terrain and set the hieghts how we want. This is where we generate the terrain
+	//in this case I will run a sin-wave through the terrain in one axis.
+
+	for (int j = 0; j<m_terrainHeight; j++)
+	{
+		for (int i = 0; i<m_terrainWidth; i++)
+		{
+			index = (m_terrainHeight * j) + i;
+
+			m_heightMap[index].x = (float)i;
+			m_heightMap[index].y = m_heightMap[index].y + RandomFloat(-0.4f, 0.4f);//(float)((rand()%15));//(float)(cos((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
+			m_heightMap[index].z = (float)j;
+		}
+	}
+
+}
+
 bool TerrainClass::AddRandomNoise(ID3D11Device* device, bool keydown)
 {
 
@@ -227,26 +266,7 @@ bool TerrainClass::AddRandomNoise(ID3D11Device* device, bool keydown)
 	//times per second. 
 	if(keydown&&(!m_terrainGeneratedToggle))
 	{
-		int index;
-		float height = 0.0;
-		
-
-		//loop through the terrain and set the hieghts how we want. This is where we generate the terrain
-		//in this case I will run a sin-wave through the terrain in one axis.
-
- 		for(int j=0; j<m_terrainHeight; j++)
-		{
-			for(int i=0; i<m_terrainWidth; i++)
-			{			
-				index = (m_terrainHeight * j) + i;
-
-				m_heightMap[index].x = (float)i;
-				m_heightMap[index].y = m_heightMap[index].y + RandomFloat(-0.4f,0.4f);//(float)((rand()%15));//(float)(cos((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
-				m_heightMap[index].z = (float)j;
-			}
-		}
-
-		//SmoothTerrain(2);
+		AddRandomNoise();
 
 		result = CalculateNormals();
 		if(!result)
@@ -272,7 +292,7 @@ bool TerrainClass::AddRandomNoise(ID3D11Device* device, bool keydown)
 }
 
 
-void TerrainClass::SmoothTerrain(int n) {
+void TerrainClass::SmoothTerrain(int n = 1) {
 
 	int index;
 	float height = 0.0;
