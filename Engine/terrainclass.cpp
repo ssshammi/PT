@@ -105,7 +105,7 @@ void TerrainClass::RunProceduralFunctions() {
 		AddRandomNoise();	
 
 
-	SmoothTerrain(20);
+	SmoothTerrain(21);
 	
 	VoronoiRegions();
 }
