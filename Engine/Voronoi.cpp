@@ -42,10 +42,13 @@ void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHe
 	m_terrainWidth = terrainWidth;
 	m_terrainHeight = terrainHeight;
 
+	//creating vornoi Regions with parameters
 	VoronoiRegions(120,12);
 
 	//passing the rooms to the terrain class
 	rooms = m_rooms;
+	//releasing heightmap pointer before returning
+	m_heightMap = 0;
 	return;
 
 }
@@ -203,16 +206,21 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 void Vornoi::DelanuayTriangles() {
 	//If VoronoiRegions exists
 	if (m_VRegions) {
+
+#pragma region UsingLibraryToCreateDelaunayTriangles
+
 		//adding points to algorithm
 		vector<Vec2f> points;
 		int nPoints = m_rooms.size();
-		for (int i = 0; i <nPoints; i++) {
+		for (int i = 0; i < nPoints; i++) {
 			points.push_back(Vec2f(m_rooms.at(i)->vPoint->x, m_rooms.at(i)->vPoint->z, i));
 		}
 		//using algorithm to get delaunay triangluation
 		Delaunay triangulation;
 		vector<Triangle> triangles = triangulation.triangulate(points);
 		vector<Edge> edges = triangulation.getEdges();
+
+#pragma endregion
 
 		//obtaining weights of edges as distances between points
 		int nEdges = edges.size();
@@ -224,13 +232,16 @@ void Vornoi::DelanuayTriangles() {
 		//sorting the edges array according to weights
 		std::sort(edges.begin(), edges.end());
 
-		//finding minimum spanning tree from graph obtaned in delaunay using Prim's Algorithm
+		//finding minimum spanning tree from graph obtaned in delaunay using Kruskal's Algorithm
 		vector<Edge*> minSpanTree;
-		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
+		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) 
+		{
 			bool duplicate = false;
 			//check for duplicates
-			for (std::vector< Edge* >::iterator m = minSpanTree.begin(); m != minSpanTree.end(); ++m) {
-				if ((*m)->p1 == (e->p1) && (*m)->p2 == (e->p2) || (*m)->p1 == (e->p2) && (*m)->p2 == (e->p1)) {
+			for (std::vector< Edge* >::iterator m = minSpanTree.begin(); m != minSpanTree.end(); ++m) 
+			{
+				if ((*m)->p1 == (e->p1) && (*m)->p2 == (e->p2) || (*m)->p1 == (e->p2) && (*m)->p2 == (e->p1))
+				{
 					duplicate = true;
 					break;
 				}
@@ -339,9 +350,8 @@ void Vornoi::DelanuayTriangles() {
 
 bool Vornoi::isCircular(vector<Edge*> &edges) {
 	int nPoints = m_rooms.size();
+
 #pragma region creatingAdjList
-
-
 	//Create Adjesency list
 	vector<int> **adj = new vector<int>*[nPoints];
 	for (int i = 0; i < nPoints; i++) {
@@ -359,8 +369,6 @@ bool Vornoi::isCircular(vector<Edge*> &edges) {
 					adj[i]->push_back((*e)->p1.index);
 			}
 		}
-
-
 	}
 
 	//ofstream fout;
@@ -380,6 +388,7 @@ bool Vornoi::isCircular(vector<Edge*> &edges) {
 	for (int i = 0; i < nPoints; i++)
 		visited[i] = false;
 
+	//Here the back edge is used to check if the currently added edge creates a circularity in the graph.
 	if (isCircular((edges.back())->p1.index, visited, adj, -1)) {
 		return true;
 	}
