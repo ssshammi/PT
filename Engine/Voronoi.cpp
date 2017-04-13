@@ -43,7 +43,7 @@ void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHe
 	m_terrainHeight = terrainHeight;
 
 	//creating vornoi Regions with parameters
-	VoronoiRegions(120,12);
+	VoronoiRegions(200,20);
 
 	//passing the rooms to the terrain class
 	rooms = m_rooms;
