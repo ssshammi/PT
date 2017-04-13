@@ -9,6 +9,7 @@ cbuffer LightBuffer {
 	float4 specularColor;
 };
 
+
 struct PixelInputType {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
@@ -48,6 +49,8 @@ float4 LightPixelShader(PixelInputType input):SV_TARGET
 
 
 	color = color*textureColor;
+
+	//color = color* sumOfAllothercolors 
 	/*float grayscale = dot(color.rgb, float3(0.3, 0.59, 0.11));
 
 	color.r = grayscale;

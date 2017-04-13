@@ -34,6 +34,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "modellistclass.h"
 #include "frustumclass.h"
 #include "quadtreeclass.h"
+#include "pointlightclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
@@ -72,7 +73,7 @@ private:
 	ModelListClass* m_ModelList;
 	FrustumClass* m_Frustum;
 	QuadTreeClass* m_QuadTree;
-	
+	PointLightClass* m_PointLights[NUM_LIGHTS];
 };
 
 #endif

@@ -4,6 +4,11 @@
 
 
 /////////////
+// DEFINES //
+/////////////
+#define NUM_LIGHTS 4
+
+/////////////
 // GLOBALS //
 /////////////
 Texture2D grassTexture : register(t0);
@@ -19,6 +24,10 @@ cbuffer LightBuffer
 	float padding;
 };
 
+cbuffer PointLightColorBuffer
+{
+	float4 pointDiffuseColor[NUM_LIGHTS];
+};
 
 //////////////
 // TYPEDEFS //
@@ -29,6 +38,7 @@ struct PixelInputType
 	float2 tex : TEXCOORD0;
 	float3 normal : NORMAL;
 	float4 walkable : COLOR0;
+	float4 lightPos[NUM_LIGHTS] : TEXCOORD1;
 };
 
 
@@ -46,6 +56,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	float3 lightDir;
 	float lightIntensity;
 	float4 color;
+	float4 pointColor[NUM_LIGHTS];
 
 	grassColor = grassTexture.Sample(SampleType,input.tex);
 	slopeColor = slopeTexture.Sample(SampleType,input.tex);
@@ -87,11 +98,26 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
         color += (diffuseColor * lightIntensity);
     }
 
+	float4 sumOfPointLights = float4(0.0f,0.0f,0.0f,0.0f);
+	//Point lights and their colors
+	[unroll] for (int i = 0; i < NUM_LIGHTS; i++) {
+		float lightIntensity = saturate(dot(input.normal, input.lightPos[i]));
+		pointColor[i] = pointDiffuseColor[i] * lightIntensity;
+		sumOfPointLights += pointColor[i];
+	}
+
+	color.x = input.walkable.x;
+	//see if this works or else try *
+	color = color + saturate(sumOfPointLights);
+
+	
+
+
     // Saturate the final light color.
     color = saturate(color);
 	
 	color = color * textureColor;
-	color.x =  input.walkable.x;
+	
 
     return color;
 }

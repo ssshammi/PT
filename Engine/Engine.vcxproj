@@ -104,6 +104,7 @@
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
+    <ClCompile Include="pointlightclass.cpp" />
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="quadtreeclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
     <ClInclude Include="PerlinNoise.h" />
+    <ClInclude Include="pointlightclass.h" />
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="quadtreeclass.h" />
     <ClInclude Include="systemclass.h" />
@@ -147,8 +149,8 @@
   <ItemGroup>
     <None Include="font.ps" />
     <None Include="font.vs" />
-    <None Include="terrain.ps" />
-    <None Include="terrain.vs" />
+    <None Include="terrain_ps.hlsl" />
+    <None Include="terrain_vs.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="light_ps.hlsl" />

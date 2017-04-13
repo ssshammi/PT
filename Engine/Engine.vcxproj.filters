@@ -102,6 +102,9 @@
     <ClCompile Include="Voronoi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pointlightclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -188,18 +191,21 @@
     <ClInclude Include="DelaunayTriangles\vector2.h">
       <Filter>Header Files\DelaunayTriangles</Filter>
     </ClInclude>
+    <ClInclude Include="pointlightclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="terrain.vs">
-      <Filter>Shader Files</Filter>
-    </None>
     <None Include="font.ps">
       <Filter>Shader Files</Filter>
     </None>
     <None Include="font.vs">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="terrain.ps">
+    <None Include="terrain_ps.hlsl">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="terrain_vs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>

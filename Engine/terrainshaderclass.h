@@ -4,6 +4,9 @@
 #ifndef _TERRAINSHADERCLASS_H_
 #define _TERRAINSHADERCLASS_H_
 
+//GLOBALS
+const int NUM_LIGHTS = 4;
+
 
 //////////////
 // INCLUDES //
@@ -36,6 +39,17 @@ private:
 		float padding;
 	};
 
+	//Point light buffers
+	struct PointLightColorBufferType
+	{
+		D3DXVECTOR4 diffuseColor[NUM_LIGHTS];
+	};
+
+	struct PointLightPositionBufferType
+	{
+		D3DXVECTOR4 lightPosition[NUM_LIGHTS];
+	};
+
 public:
 	TerrainShaderClass();
 	TerrainShaderClass(const TerrainShaderClass&);
@@ -43,9 +57,9 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, D3DXVECTOR4, D3DXVECTOR4, D3DXVECTOR3, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*);
+	bool Render(ID3D11DeviceContext*, int, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, D3DXVECTOR4, D3DXVECTOR4, D3DXVECTOR3, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, D3DXVECTOR4 diffuseColor[], D3DXVECTOR4 lightPosition[]);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, D3DXVECTOR4, D3DXVECTOR4, D3DXVECTOR3, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*);
+	bool SetShaderParameters(ID3D11DeviceContext*, D3DXMATRIX, D3DXMATRIX, D3DXMATRIX, D3DXVECTOR4, D3DXVECTOR4, D3DXVECTOR3, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, ID3D11ShaderResourceView*, D3DXVECTOR4 diffuseColor[], D3DXVECTOR4 lightPosition[]);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
@@ -61,6 +75,10 @@ private:
 	ID3D11SamplerState* m_sampleState;
 	ID3D11Buffer* m_matrixBuffer;
 	ID3D11Buffer* m_lightBuffer;
+	ID3D11Buffer* m_pointLightColorBuffer;
+	ID3D11Buffer* m_pointLightPositionBuffer;
+
+
 };
 
 #endif

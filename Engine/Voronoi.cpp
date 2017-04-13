@@ -1,5 +1,6 @@
 #include "Voronoi.h"
 #include <algorithm>
+#include <ctime>
 
 void Vornoi::AddVoronoiPointAt(int IndexInArray, int RegionIndex) {
 
@@ -41,6 +42,9 @@ void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHe
 	m_heightMap = hmap;
 	m_terrainWidth = terrainWidth;
 	m_terrainHeight = terrainHeight;
+
+
+	srand(time(NULL));
 
 	//creating vornoi Regions with parameters
 	VoronoiRegions(200,20);

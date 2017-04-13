@@ -12,6 +12,8 @@ TerrainShaderClass::TerrainShaderClass()
 	m_sampleState = 0;
 	m_matrixBuffer = 0;
 	m_lightBuffer = 0;
+	m_pointLightColorBuffer = 0;
+	m_pointLightPositionBuffer = 0;
 }
 
 
@@ -31,7 +33,7 @@ bool TerrainShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/terrain.vs", L"../Engine/terrain.ps");
+	result = InitializeShader(device, hwnd, L"../Engine/terrain_vs.hlsl", L"../Engine/terrain_ps.hlsl");
 	if(!result)
 	{
 		return false;
@@ -52,13 +54,14 @@ void TerrainShaderClass::Shutdown()
 
 bool TerrainShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 								D3DXMATRIX projectionMatrix, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, 
-								ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture)
+								ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture, 
+								D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[])
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection,grassTexture,slopeTexture,rockTexture);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection,grassTexture,slopeTexture,rockTexture,pointLightDiffuseColor,pointLightPosition);
 	if(!result)
 	{
 		return false;
@@ -82,6 +85,7 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
     D3D11_SAMPLER_DESC samplerDesc;
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
+	D3D11_BUFFER_DESC lightColorBufferDesc, lightPositionBufferDesc;		//for point lights
 
 
 	// Initialize the pointers this function will use to null.
@@ -246,12 +250,51 @@ bool TerrainShaderClass::InitializeShader(ID3D11Device* device, HWND hwnd, WCHAR
 		return false;
 	}
 
+	// Setup the description of the point light dynamic constant buffer that is in the pixel shader.
+	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
+	lightColorBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightColorBufferDesc.ByteWidth = sizeof(PointLightColorBufferType);
+	lightColorBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightColorBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightColorBufferDesc.MiscFlags = 0;
+	lightColorBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&lightColorBufferDesc, NULL, &m_pointLightColorBuffer);
+	if (FAILED(result)){	return false;	}
+
+	// Setup the description of the point light dynamic constant buffer that is in the pixel shader.
+	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
+	lightPositionBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightPositionBufferDesc.ByteWidth = sizeof(PointLightPositionBufferType);
+	lightPositionBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightPositionBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightPositionBufferDesc.MiscFlags = 0;
+	lightPositionBufferDesc.StructureByteStride = 0;
+
+	result = device->CreateBuffer(&lightPositionBufferDesc, NULL, &m_pointLightPositionBuffer);
+	if (FAILED(result)) { return false; }
+
 	return true;
 }
 
 
 void TerrainShaderClass::ShutdownShader()
 {
+
+	// Release the light constant buffer.
+	if (m_pointLightPositionBuffer)
+	{
+		m_pointLightPositionBuffer->Release();
+		m_pointLightPositionBuffer = 0;
+	}
+
+	// Release the light constant buffer.
+	if (m_pointLightColorBuffer)
+	{
+		m_pointLightColorBuffer->Release();
+		m_pointLightColorBuffer = 0;
+	}
+
 	// Release the light constant buffer.
 	if(m_lightBuffer)
 	{
@@ -336,13 +379,16 @@ void TerrainShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 
 bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 											 D3DXMATRIX projectionMatrix, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection,
-											ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture)
+											ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture, 
+											D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[])
 {
 	HRESULT result;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
 	unsigned int bufferNumber;
 	MatrixBufferType* dataPtr;
 	LightBufferType* dataPtr2;
+	PointLightColorBufferType* dataPtr3;
+	PointLightPositionBufferType* dataPtr4;
 
 
 	// Transpose the matrices to prepare them for the shader.
@@ -374,6 +420,26 @@ bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	// Now set the constant buffer in the vertex shader with the updated values.
     deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_matrixBuffer);
 
+
+	// Set the positions of the point lights in the Vertex Shader. 
+	result = deviceContext->Map(m_pointLightPositionBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))	{		return false;	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr4 = (PointLightPositionBufferType*)mappedResource.pData;
+
+	//copy each element of the light position into the buffer
+	for (int i = 0; i < NUM_LIGHTS; i++)
+		dataPtr4->lightPosition[i] = pointLightPosition[i];
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(m_pointLightPositionBuffer, 0);
+	bufferNumber = 1;
+
+	// Now set the constant buffer in the vertex shader with the updated values.
+	deviceContext->VSSetConstantBuffers(bufferNumber, 1, &m_pointLightPositionBuffer);
+
+
 	// Lock the light constant buffer so it can be written to.
 	result = deviceContext->Map(m_lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if(FAILED(result))
@@ -398,6 +464,31 @@ bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	// Finally set the light constant buffer in the pixel shader with the updated values.
 	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_lightBuffer);
+
+
+	// Lock the light constant buffer so it can be written to.
+	result = deviceContext->Map(m_pointLightColorBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	// Get a pointer to the data in the constant buffer.
+	dataPtr3 = (PointLightColorBufferType*)mappedResource.pData;
+
+	//copy each element of the light position into the buffer
+	for (int i = 0; i < NUM_LIGHTS; i++)
+		dataPtr3->diffuseColor[i] = pointLightDiffuseColor[i];
+
+	// Unlock the constant buffer.
+	deviceContext->Unmap(m_pointLightColorBuffer, 0);
+
+	// Set the position of the light constant buffer in the pixel shader.
+	bufferNumber = 1;
+
+	// Finally set the light constant buffer in the pixel shader with the updated values.
+	deviceContext->PSSetConstantBuffers(bufferNumber, 1, &m_pointLightColorBuffer);
+
 
 	//set texture
 	deviceContext->PSSetShaderResources(0,1,&grassTexture);

@@ -63,7 +63,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 		}
 	}
 
-	RunProceduralFunctions();
+	//RunProceduralFunctions();
 
 	//even though we are generating a flat terrain, we still need to normalise it. 
 	// Calculate the normals for the terrain data.
