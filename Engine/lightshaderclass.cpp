@@ -61,13 +61,13 @@ void LightShaderClass::Shutdown()
 
 bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor,
-	D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower ,D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[])
+	D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower ,D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[], float pointLightRadius[], float pointFallOffDist[])
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, lightDirection, ambientColor, diffuseColor, cameraPosition, specularColor, specularPower, pointLightDiffuseColor, pointLightPosition);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, lightDirection, ambientColor, diffuseColor, cameraPosition, specularColor, specularPower, pointLightDiffuseColor, pointLightPosition, pointLightRadius, pointFallOffDist);
 	if (!result)
 	{
 		return false;
@@ -408,7 +408,7 @@ void LightShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND h
 bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
 	D3DXMATRIX projectionMatrix, ID3D11ShaderResourceView* texture, D3DXVECTOR3 lightDirection,
 	D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 cameraPosition, D3DXVECTOR4 specularColor, float specularPower,
-	D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[])
+	D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[], float pointLightRadius[], float pointFallOffDist[])
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -533,8 +533,11 @@ bool LightShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D
 	dataPtr5 = (PointLightColorBufferType*)mappedResource.pData;
 
 	//copy each element of the light position into the buffer
-	for (int i = 0; i < NUM_LIGHTS; i++)
+	for (int i = 0; i < NUM_LIGHTS; i++) {
 		dataPtr5->diffuseColor[i] = pointLightDiffuseColor[i];
+		dataPtr5->PointLightRadius[i] = D3DXVECTOR4(pointLightRadius[i], pointFallOffDist[i], 0.0f, 0.0f);
+
+	}
 
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_pointLightColorBuffer, 0);

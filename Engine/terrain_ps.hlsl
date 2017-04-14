@@ -16,7 +16,7 @@ Texture2D slopeTexture : register(t1);
 Texture2D rockTexture : register(t2);
 SamplerState SampleType;
 
-cbuffer LightBuffer
+cbuffer LightBuffer :register(b0)
 {
 	float4 ambientColor;
 	float4 diffuseColor;
@@ -24,9 +24,10 @@ cbuffer LightBuffer
 	float padding;
 };
 
-cbuffer PointLightColorBuffer
+cbuffer PointLightColorBuffer : register(b1)
 {
 	float4 pointDiffuseColor[NUM_LIGHTS];
+	float4 PointLightRadius[NUM_LIGHTS];
 };
 
 //////////////
@@ -99,23 +100,26 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     }
 
 	float4 sumOfPointLights = float4(0.0f,0.0f,0.0f,0.0f);
-	float radius = 25.0f;
 	//Point lights and their colors
+
 	for (int i = 0; i < NUM_LIGHTS; i++) {
 
+		float radius = PointLightRadius[i].x;
+		float falloff = PointLightRadius[i].y;
 		//getting the distance and setting intensity if too far
 		float dist = length(input.lightPos[i]);
-		dist = (radius - dist) / radius;
+		dist = (radius - dist) / (radius-falloff);//lerp( PointLightFallOffDistance[i], PointLightRadius[i], PointLightRadius[i] - dist);
 		dist = saturate(dist);
 
 		float4 normalizedPos = normalize(input.lightPos[i]);
 		float lightIntensity = saturate(dot(input.normal, normalizedPos));
 
-		pointColor[i] = pointDiffuseColor[i] * lightIntensity * dist;
+		pointColor[i] = pointDiffuseColor[i] * lightIntensity *dist;
 		sumOfPointLights += pointColor[i];
+
 	}
 
-	color.x = input.walkable.x;
+	//color.x = input.walkable.x;
 	//see if this works or else try *
 	color = color + saturate(sumOfPointLights);
 

@@ -9,6 +9,7 @@ const int NUM_LIGHTS = 4;
 struct PointLightColorBufferType
 {
 	D3DXVECTOR4 diffuseColor[NUM_LIGHTS];
+	D3DXVECTOR4 PointLightRadius[NUM_LIGHTS];
 };
 
 struct PointLightPositionBufferType

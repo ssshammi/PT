@@ -14,6 +14,7 @@ cbuffer LightBuffer {
 cbuffer PointLightColorBuffer
 {
 	float4 pointDiffuseColor[NUM_LIGHTS];
+	float4 PointLightRadius[NUM_LIGHTS];
 };
 
 struct PixelInputType {
@@ -68,7 +69,7 @@ float4 LightPixelShader(PixelInputType input):SV_TARGET
 
 		//getting the distance and setting intensity if too far
 		float dist = length(input.lightPos[i]);
-		dist = (10.0f - dist)/10.0f;
+		dist = (25.0f-dist)/25.0f;
 		dist = saturate(dist);
 
 		float4 normalizedPos = normalize(input.lightPos[i]);

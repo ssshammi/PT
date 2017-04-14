@@ -55,13 +55,13 @@ void TerrainShaderClass::Shutdown()
 bool TerrainShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 								D3DXMATRIX projectionMatrix, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection, 
 								ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture, 
-								D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[])
+								D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[], float pointLightRadius[], float pointFallOffDist[])
 {
 	bool result;
 
 
 	// Set the shader parameters that it will use for rendering.
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection,grassTexture,slopeTexture,rockTexture,pointLightDiffuseColor,pointLightPosition);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, ambientColor, diffuseColor, lightDirection,grassTexture,slopeTexture,rockTexture,pointLightDiffuseColor,pointLightPosition, pointLightRadius, pointFallOffDist);
 	if(!result)
 	{
 		return false;
@@ -380,7 +380,7 @@ void TerrainShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, 
 											 D3DXMATRIX projectionMatrix, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffuseColor, D3DXVECTOR3 lightDirection,
 											ID3D11ShaderResourceView* grassTexture, ID3D11ShaderResourceView* slopeTexture, ID3D11ShaderResourceView* rockTexture, 
-											D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[])
+											D3DXVECTOR4 pointLightDiffuseColor[], D3DXVECTOR4 pointLightPosition[], float pointLightRadius[], float pointFallOffDist[])
 {
 	HRESULT result;
     D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -476,10 +476,21 @@ bool TerrainShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	// Get a pointer to the data in the constant buffer.
 	dataPtr3 = (PointLightColorBufferType*)mappedResource.pData;
 
+	ofstream fout;
+	if (!first) {
+		fout.open("../Engine/Debug.txt");
+	}
 	//copy each element of the light position into the buffer
-	for (int i = 0; i < NUM_LIGHTS; i++)
+	for (int i = 0; i < NUM_LIGHTS; i++) {
 		dataPtr3->diffuseColor[i] = pointLightDiffuseColor[i];
-
+		dataPtr3->PointLightRadius[i] = D3DXVECTOR4(pointLightRadius[i], pointFallOffDist[i],0.0f,0.0f);
+		if(!first)
+		fout << pointLightRadius[i] << endl;
+	}
+	if (!first) {
+		fout.close();
+		first = true;
+	}
 	// Unlock the constant buffer.
 	deviceContext->Unmap(m_pointLightColorBuffer, 0);
 

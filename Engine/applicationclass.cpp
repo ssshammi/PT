@@ -252,8 +252,8 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the light object.
-	m_Light->SetAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
-	m_Light->SetDiffuseColor(0.05f, 0.05f, 0.05f, 1.0f);
+	m_Light->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
+	m_Light->SetDiffuseColor(0.15f, 0.15f, 0.15f, 1.0f);
 	m_Light->SetDirection(0.0f,0.0f, 1.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(200.0f);
@@ -262,6 +262,8 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	for (int i = 0; i < NUM_LIGHTS; i++) {
 		m_PointLights[i] = new PointLightClass;
+		m_PointLights[i]->SetRadius(25.0f);
+		m_PointLights[i]->SetFallOffDistance(15.0f);
 		//if not initialized
 		//if (!m_PointLights[i]) return false;
 	}
@@ -273,8 +275,9 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	m_PointLights[1]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_PointLights[1]->SetPosition(30.0f, 1.0f, 30.0f);
+	m_PointLights[1]->SetRadius(17.0f);
 
-	m_PointLights[2]->SetDiffuseColor(0.4f, 0.4f, 0.4f, 1.0f);
+	m_PointLights[2]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_PointLights[2]->SetPosition(60.0f, 1.0f, 60.0f);
 
 	m_PointLights[3]->SetDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
@@ -667,10 +670,13 @@ bool ApplicationClass::RenderGraphics()
 	//obtain all point light colors and positions as an array to pass to the rendering functions
 	D3DXVECTOR4 pointLightColors[NUM_LIGHTS];
 	D3DXVECTOR4 pointLightPositions[NUM_LIGHTS];
+	float pointLightRadius[NUM_LIGHTS], pointFallOutDist[NUM_LIGHTS];
 
 	for (int i = 0; i < NUM_LIGHTS; i++) {
 		pointLightColors[i] = m_PointLights[i]->GetDiffuseColor();
 		pointLightPositions[i] = m_PointLights[i]->GetPosition();
+		pointLightRadius[i] = m_PointLights[i]->GetRadius();
+		pointFallOutDist[i] = m_PointLights[i]->GetFallOffDistance();
 	}
 
 
@@ -733,7 +739,7 @@ bool ApplicationClass::RenderGraphics()
 			// Render the model using the light shader.
 			result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
 				m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
-				m_Light->GetSpecularColor(), m_Light->GetSpecularPower(), pointLightColors,pointLightPositions);
+				m_Light->GetSpecularColor(), m_Light->GetSpecularPower(), pointLightColors,pointLightPositions, pointLightRadius,pointFallOutDist);
 
 			if (!result) {
 				return false;
@@ -763,7 +769,7 @@ bool ApplicationClass::RenderGraphics()
 
 	// Set the terrain shader parameters that it will use for rendering.
 	result = m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(),
-		m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetGrassTexture(),m_Terrain->GetSlopeTexture(),m_Terrain->GetRockTexture(),pointLightColors,pointLightPositions);
+		m_Light->GetDiffuseColor(), m_Light->GetDirection(), m_Terrain->GetGrassTexture(),m_Terrain->GetSlopeTexture(),m_Terrain->GetRockTexture(),pointLightColors,pointLightPositions, pointLightRadius, pointFallOutDist);
 	if (!result)
 	{
 		return false;
