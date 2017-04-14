@@ -67,9 +67,11 @@ float4 LightPixelShader(PixelInputType input):SV_TARGET
 	//Point lights and their colors
 	for (int i = 0; i < NUM_LIGHTS; i++) {
 
+		float radius = PointLightRadius[i].x;
+		float falloff = PointLightRadius[i].y;
 		//getting the distance and setting intensity if too far
 		float dist = length(input.lightPos[i]);
-		dist = (25.0f-dist)/25.0f;
+		dist = (radius - dist) / (radius - falloff);
 		dist = saturate(dist);
 
 		float4 normalizedPos = normalize(input.lightPos[i]);

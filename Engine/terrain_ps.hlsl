@@ -108,7 +108,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 		float falloff = PointLightRadius[i].y;
 		//getting the distance and setting intensity if too far
 		float dist = length(input.lightPos[i]);
-		dist = (radius - dist) / (radius-falloff);//lerp( PointLightFallOffDistance[i], PointLightRadius[i], PointLightRadius[i] - dist);
+		dist = (radius - dist) / (radius-falloff);
 		dist = saturate(dist);
 
 		float4 normalizedPos = normalize(input.lightPos[i]);
