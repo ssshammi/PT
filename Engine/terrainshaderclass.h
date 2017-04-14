@@ -4,8 +4,6 @@
 #ifndef _TERRAINSHADERCLASS_H_
 #define _TERRAINSHADERCLASS_H_
 
-//GLOBALS
-const int NUM_LIGHTS = 4;
 
 
 //////////////
@@ -15,6 +13,7 @@ const int NUM_LIGHTS = 4;
 #include <d3dx10math.h>
 #include <d3dx11async.h>
 #include <fstream>
+#include "PointLightHeaderData.h"
 using namespace std;
 
 
@@ -39,16 +38,7 @@ private:
 		float padding;
 	};
 
-	//Point light buffers
-	struct PointLightColorBufferType
-	{
-		D3DXVECTOR4 diffuseColor[NUM_LIGHTS];
-	};
-
-	struct PointLightPositionBufferType
-	{
-		D3DXVECTOR4 lightPosition[NUM_LIGHTS];
-	};
+	
 
 public:
 	TerrainShaderClass();

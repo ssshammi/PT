@@ -252,11 +252,11 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the light object.
-	m_Light->SetAmbientColor(0.00f, 0.0f, 0.0f, 1.0f);
-	m_Light->SetDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
-	m_Light->SetDirection(1.0f,-0.5f, 1.0f);
+	m_Light->SetAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+	m_Light->SetDiffuseColor(0.05f, 0.05f, 0.05f, 1.0f);
+	m_Light->SetDirection(0.0f,0.0f, 1.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetSpecularPower(20.0f);
+	m_Light->SetSpecularPower(200.0f);
 
 	//Initialize point lights
 
@@ -267,7 +267,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	//setting values to point lights
-	m_PointLights[0]->SetDiffuseColor(0.1f, 0.1f, 0.1f, 1.0f);
+	m_PointLights[0]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_PointLights[0]->SetPosition(3.0f, 1.0f, 3.0f);
 
 
@@ -732,8 +732,8 @@ bool ApplicationClass::RenderGraphics()
 
 			// Render the model using the light shader.
 			result = m_LightShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix,
-				m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor().x*(color), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
-				m_Light->GetSpecularColor().x*color, 1.0f);
+				m_Model->GetTexture(), m_Light->GetDirection(), m_Light->GetAmbientColor(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(),
+				m_Light->GetSpecularColor(), m_Light->GetSpecularPower(), pointLightColors,pointLightPositions);
 
 			if (!result) {
 				return false;

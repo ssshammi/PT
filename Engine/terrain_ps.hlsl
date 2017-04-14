@@ -99,10 +99,19 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     }
 
 	float4 sumOfPointLights = float4(0.0f,0.0f,0.0f,0.0f);
+	float radius = 25.0f;
 	//Point lights and their colors
-	[unroll] for (int i = 0; i < NUM_LIGHTS; i++) {
-		float lightIntensity = saturate(dot(input.normal, input.lightPos[i]));
-		pointColor[i] = pointDiffuseColor[i] * lightIntensity;
+	for (int i = 0; i < NUM_LIGHTS; i++) {
+
+		//getting the distance and setting intensity if too far
+		float dist = length(input.lightPos[i]);
+		dist = (radius - dist) / radius;
+		dist = saturate(dist);
+
+		float4 normalizedPos = normalize(input.lightPos[i]);
+		float lightIntensity = saturate(dot(input.normal, normalizedPos));
+
+		pointColor[i] = pointDiffuseColor[i] * lightIntensity * dist;
 		sumOfPointLights += pointColor[i];
 	}
 

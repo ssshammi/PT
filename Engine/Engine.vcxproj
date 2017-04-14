@@ -136,6 +136,7 @@
     <ClInclude Include="modellistclass.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="pointlightclass.h" />
+    <ClInclude Include="PointLightHeaderData.h" />
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="quadtreeclass.h" />
     <ClInclude Include="systemclass.h" />

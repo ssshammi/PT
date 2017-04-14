@@ -73,7 +73,7 @@ PixelInputType TerrainVertexShader(VertexInputType input)
 	for (int i = 0; i < NUM_LIGHTS; i++) {
 		output.lightPos[i].a = 1.0f;
 		output.lightPos[i].xyz = lightPosition[i].xyz - worldPosition.xyz;
-		output.lightPos[i] = normalize(output.lightPos[i]);
+		//output.lightPos[i] = normalize(output.lightPos[i]);		//commented as i want the distance of the point light from the player
 	}
 
     return output;
