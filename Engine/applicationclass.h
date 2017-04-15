@@ -35,6 +35,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "frustumclass.h"
 #include "quadtreeclass.h"
 #include "pointlightclass.h"
+#include "GameManager.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
@@ -74,6 +75,7 @@ private:
 	FrustumClass* m_Frustum;
 	QuadTreeClass* m_QuadTree;
 	PointLightClass* m_PointLights[NUM_LIGHTS];
+	GameManager* m_gameManager;
 };
 
 #endif

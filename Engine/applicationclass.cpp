@@ -23,6 +23,7 @@ ApplicationClass::ApplicationClass()
 	m_ModelList = 0;
 	m_Frustum = 0;
 	m_QuadTree = 0;
+	m_gameManager = 0;
 	for (int i = 0; i < NUM_LIGHTS; i++)
 		m_PointLights[i] = 0;
 }
@@ -321,12 +322,24 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	//initialize gameManager
+	m_gameManager = new GameManager;
+	result = m_gameManager->Initialize(m_Direct3D->GetDevice(),hwnd,m_Input,m_Light,m_PointLights,m_Camera);
+	if (!result) {
+		MessageBox(hwnd, L"Could not initialize the Game Manager.", L"Error", MB_OK);
+		return false;
+	}
+
 }
 
 
 void ApplicationClass::Shutdown()
 {
-
+	//release gameManager
+	if (m_gameManager) {
+		m_gameManager->Shutdown();
+		m_gameManager = 0;
+	}
 	//release the point lights
 	for (int i = 0; i < NUM_LIGHTS; i++)
 	{
@@ -479,7 +492,7 @@ bool ApplicationClass::Frame()
 	{
 		return false;
 	}
-	
+
 	// Check if the user pressed escape and wants to exit the application.
 	if(m_Input->IsEscapePressed() == true)
 	{
@@ -512,6 +525,7 @@ bool ApplicationClass::Frame()
 		return false;
 	}
 
+	m_gameManager->Frame(m_Timer->GetTime());
 	
 
 
@@ -667,6 +681,7 @@ bool ApplicationClass::RenderGraphics()
 	float positionX, positionY, positionZ, radius;
 	D3DXVECTOR4 color;
 
+
 	//obtain all point light colors and positions as an array to pass to the rendering functions
 	D3DXVECTOR4 pointLightColors[NUM_LIGHTS];
 	D3DXVECTOR4 pointLightPositions[NUM_LIGHTS];
@@ -708,6 +723,12 @@ bool ApplicationClass::RenderGraphics()
 
 	// Construct the frustum.
 	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+
+
+
+	result = m_gameManager->Render(m_Direct3D->GetDeviceContext(),worldMatrix,viewMatrix,projectionMatrix,pointLightColors,pointLightPositions,pointLightRadius,pointFallOutDist);
+	if (!result) return false;
+
 
 	// Get the number of models that will be rendered.
 	modelCount = m_ModelList->GetModelCount();

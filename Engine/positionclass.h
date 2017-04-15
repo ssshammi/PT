@@ -42,7 +42,7 @@ private:
 	float m_positionX, m_positionY, m_positionZ;
 	float m_rotationX, m_rotationY, m_rotationZ;
 
-	float m_frameTime;
+	static float m_frameTime;
 
 	float m_forwardSpeed, m_backwardSpeed;
 	float m_upwardSpeed, m_downwardSpeed;

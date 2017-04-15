@@ -314,7 +314,7 @@ void PositionClass::LookUpward(bool keydown)
 	return;
 }
 
-
+float PositionClass::m_frameTime = 0;
 void PositionClass::LookDownward(bool keydown)
 {
 	// Update the downward rotation speed movement based on the frame time and whether the user is holding the key down or not.
