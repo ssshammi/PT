@@ -725,16 +725,17 @@ bool ApplicationClass::RenderGraphics()
 	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
 
+	// Initialize the count of models that have been rendered.
+	renderCount = 0;
 
-	result = m_gameManager->Render(m_Direct3D->GetDeviceContext(),worldMatrix,viewMatrix,projectionMatrix,pointLightColors,pointLightPositions,pointLightRadius,pointFallOutDist);
+	result = m_gameManager->Render(m_Direct3D->GetDeviceContext(),worldMatrix,viewMatrix,projectionMatrix,m_Frustum,
+			pointLightColors,pointLightPositions,pointLightRadius,pointFallOutDist,renderCount);
 	if (!result) return false;
 
 
 	// Get the number of models that will be rendered.
 	modelCount = m_ModelList->GetModelCount();
 
-	// Initialize the count of models that have been rendered.
-	renderCount = 0;
 
 	// Go through all the models and render them only if they can be seen by the camera view.
 	for (index = 0; index<modelCount; index++)
@@ -770,7 +771,7 @@ bool ApplicationClass::RenderGraphics()
 			m_Direct3D->GetWorldMatrix(worldMatrix);
 
 			// Since this model was rendered then increase the count for this frame.
-			renderCount++;
+			//renderCount++;
 		}
 	}
 

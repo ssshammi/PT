@@ -18,7 +18,7 @@ public:
 	bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, LightClass *DirectionalLight, PointLightClass* PointLights[], CameraClass *camera);
 	void Frame(float frametime);
 	bool Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, 
-		D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[],	float pointLightRadius[], float pointFallOutDist[]);
+		FrustumClass *frustum, D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[],	float pointLightRadius[], float pointFallOutDist[], int &nFrustum);
 	void Shutdown();
 
 private:

@@ -46,27 +46,36 @@ void GameObject::Frame(float frameTime)
 }
 
 bool GameObject::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix,
-						D3DXMATRIX projectionMatrix, D3DXVECTOR3 LightDirection, D3DXVECTOR4 ambientColor, 
+						D3DXMATRIX projectionMatrix, FrustumClass *frustum, D3DXVECTOR3 LightDirection, D3DXVECTOR4 ambientColor,
 						D3DXVECTOR4 diffusedColor, D3DXVECTOR3 CameraPos, D3DXVECTOR4 SpecularColor, 
 						float specularPower, D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[], 
-						float pointLightRadius[], float pointFallOutDist[])
+						float pointLightRadius[], float pointFallOutDist[], int& nFrustum)
 {
-	bool result;
+	bool result, renderModel;
 	D3DXMATRIX temp = worldMatrix;
 	float pos_x, pos_y, pos_z;
+	float radius = 1.0f;
 	m_position->GetPosition(pos_x,pos_y,pos_z);
+	renderModel = frustum->CheckCube(pos_x, pos_y, pos_z, radius);
+	if (renderModel) 
+	{
+		//moving the object to the desired location using temporoy world position matrix
+		D3DXMatrixTranslation(&temp, pos_x, pos_y, pos_z);
+		m_model->Render(deviceContext);
 
-	D3DXMatrixTranslation(&temp, pos_x, pos_y, pos_z);
-	m_model->Render(deviceContext);
+		// Render the model using the light shader.
+		result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), temp, viewMatrix, projectionMatrix,
+			m_model->GetTexture(), LightDirection, ambientColor, diffusedColor, CameraPos,
+			SpecularColor, specularPower, pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist);
 
-	// Render the model using the light shader.
-	result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), temp, viewMatrix, projectionMatrix,
-		m_model->GetTexture(),LightDirection,ambientColor, diffusedColor, CameraPos,
-		SpecularColor,specularPower, pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist);
+		if (!result) {
+			return false;
+		}
 
-	if (!result) {
-		return false;
+		nFrustum++;
 	}
+
+	return true;
 }
 
 void GameObject::Shutdown()

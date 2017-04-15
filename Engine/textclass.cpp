@@ -601,7 +601,6 @@ bool TextClass::SetRenderCount(int count, ID3D11DeviceContext* deviceContext)
 	// Setup the cpu string.
 	strcpy_s(renderString, "RC: ");
 	strcat_s(renderString, tempString);
-	strcat_s(renderString, "%");
 
 	// Update the sentence vertex buffer with the new string information.
 	result = UpdateSentence(m_sentence11, renderString, 10, 280, 0.0f, 1.0f, 0.0f, deviceContext);
