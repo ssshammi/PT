@@ -274,7 +274,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//setting values to point lights
 	m_PointLights[0]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_PointLights[0]->SetPosition(3.0f, 1.0f, 3.0f);
-	m_PointLights[1]->SetRadius(10.0f);
+	m_PointLights[0]->SetRadius(13.0f);
 	m_PointLights[0]->SetFallOffDistance(5.0f);
 
 	m_PointLights[1]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -559,51 +559,63 @@ bool ApplicationClass::HandleInput(float frameTime)
 	// Set the frame time for calculating the updated position.
 	m_Position->SetFrameTime(frameTime);
 	
-	//Refresh Terrain
-	keyDown = m_Input->IsRPressedOnce();
-	if (keyDown) { 
-		m_Terrain->RefreshTerrain(m_Direct3D->GetDevice(), keyDown);
-		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
-	}
-
-	//Randomized Noise
-	keyDown = m_Input->IsSpacePressed();
-	if(keyDown){
-		m_Terrain->AddRandomNoise(m_Direct3D->GetDevice(), keyDown);
-		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
-	}
-
-	//Smoothing
-	keyDown = m_Input->IsSPressedOnce(); 
-	if(keyDown){
-		m_Terrain->SmoothTerrain(m_Direct3D->GetDevice(), keyDown);
-		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
-	}
-
-	//perlin noise
-	keyDown = m_Input->IsXPressedOnce();
+	keyDown = m_Input->IsLPressedOnce();
 	if (keyDown) {
 		m_freeCam = !m_freeCam;
-		m_Terrain->PassThroughPerlinNoise(m_Direct3D->GetDevice(), keyDown);
-		m_QuadTree->ReinitializeBuffers(m_Terrain,m_Direct3D->GetDevice());
+		if (!m_freeCam) {
+			m_Light->SetDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
+			m_Light->SetAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+		}
+		else {
+			m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+			m_Light->SetAmbientColor(0.6f, 0.6f, 0.6f, 1.0f);
+		}
+
 	}
+	//if freecam mode is on
+	if (m_freeCam) 
+	{
+		//Refresh Terrain
+		keyDown = m_Input->IsRPressedOnce();
+		if (keyDown) {
+			m_Terrain->RefreshTerrain(m_Direct3D->GetDevice(), keyDown);
+			m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+		}
 
-	//Faulting
-	keyDown = m_Input->IsFPressedOnce();
-	if (keyDown) {
-		m_Terrain->Faulting(m_Direct3D->GetDevice(), keyDown);
-		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
-	}
-	
-	keyDown = m_Input->IsVPressedOnce();
-	if (keyDown) {
-		m_Terrain->VoronoiRegions(m_Direct3D->GetDevice(), keyDown);
-		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
-	}
+		//Randomized Noise
+		keyDown = m_Input->IsSpacePressed();
+		if (keyDown) {
+			m_Terrain->AddRandomNoise(m_Direct3D->GetDevice(), keyDown);
+			m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+		}
 
+		//Smoothing
+		keyDown = m_Input->IsSPressedOnce();
+		if (keyDown) {
+			m_Terrain->SmoothTerrain(m_Direct3D->GetDevice(), keyDown);
+			m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+		}
 
-	if (m_freeCam) {
+		//perlin noise
+		keyDown = m_Input->IsXPressedOnce();
+		if (keyDown) {
+			m_Terrain->PassThroughPerlinNoise(m_Direct3D->GetDevice(), keyDown);
+			m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+		}
 
+		//Faulting
+		keyDown = m_Input->IsFPressedOnce();
+		if (keyDown) {
+			m_Terrain->Faulting(m_Direct3D->GetDevice(), keyDown);
+			m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+		}
+
+		keyDown = m_Input->IsVPressedOnce();
+		if (keyDown) {
+			m_Terrain->VoronoiRegions(m_Direct3D->GetDevice(), keyDown);
+			m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+		}
+		//camera Movement
 
 		keyDown = m_Input->IsLeftPressed();
 		m_Position->TurnLeft(keyDown);

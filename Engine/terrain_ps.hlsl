@@ -83,9 +83,15 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     {
         textureColor = rockColor;
     }
-	textureColor.y = textureColor.x*(input.walkable*4.0f);
-	textureColor.y = textureColor.y * (input.walkable*0.25f);
-	textureColor.z = textureColor.z * (input.walkable*0.25f);
+	//setting red value to texture
+	if (diffuseColor.x != 1.0f) {
+		textureColor.y = textureColor.x*(input.walkable*4.0f);
+		textureColor.y = textureColor.y * ((input.walkable*0.25f));
+		textureColor.z = textureColor.z * ((input.walkable*0.25f));
+		//textureColor.xyz += diffuseColor.x;
+	}
+	textureColor.x = lerp(textureColor.x,1.0f, diffuseColor.x);
+
 	// Set the default output color to the ambient light value for all pixels.
     color = ambientColor;
 
@@ -125,7 +131,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	//see if this works or else try *
 	color = color + saturate(sumOfPointLights);
 
-	color.x *= input.walkable.x * 2.0f;
+	color.x *= (input.walkable.x * 2.0f);
 
     // Saturate the final light color.
     color = saturate(color);

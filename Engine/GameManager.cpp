@@ -130,6 +130,7 @@ void GameManager::Shutdown()
 
 void GameManager::HandleInput(float frameTime)
 {
+	//Set light[0] position to player position
 	D3DXVECTOR3 playerPos = m_playerObject->GetPosition();
-	m_pointLights[0]->SetPosition(playerPos.x, playerPos.y, playerPos.z);
+	m_pointLights[0]->SetPosition(playerPos.x, playerPos.y, playerPos.z - 1.5f);
 }
