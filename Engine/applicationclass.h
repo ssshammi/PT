@@ -76,6 +76,7 @@ private:
 	QuadTreeClass* m_QuadTree;
 	PointLightClass* m_PointLights[NUM_LIGHTS];
 	GameManager* m_gameManager;
+	bool m_freeCam;
 };
 
 #endif

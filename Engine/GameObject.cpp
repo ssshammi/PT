@@ -6,6 +6,10 @@ GameObject::GameObject()
 	m_position = 0;
 	m_lightshader = 0;
 	m_model = 0;
+	m_xprev = 0.0f;
+	m_yprev = 0.0f;
+	m_zprev = 0.0f;
+
 }
 
 GameObject::GameObject(const GameObject &)
@@ -16,17 +20,29 @@ GameObject::~GameObject()
 {
 }
 
-bool GameObject::Initialize(ID3D11Device* device, HWND hwnd, InputClass *input)
+bool GameObject::Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, QuadTreeClass* quadTree)
 {
-	bool result;
-	m_model = new ModelClass;
-	if (!m_model) return false;
+	//get name of model from specific type of class
+	char* modelName;
+	WCHAR* TextureName;
 
-	result = m_model->Initialize(device, "../Engine/data/cube.obj", L"../Engine/data/bricks.dds");
-	if (!result) return false;
+	GetModelAndTexture(modelName,TextureName);
+
+	bool result;
+
 
 	m_input = input;
 	if (!m_input) return false;
+
+	m_quadTree = quadTree;
+	if (!m_quadTree) return false;
+
+	m_model = new ModelClass;
+	if (!m_model) return false;
+
+	result = m_model->Initialize(device, modelName,TextureName);
+	if (!result) return false;
+
 
 	m_lightshader = new LightShaderClass;
 	if (!m_lightshader) return false;
@@ -52,19 +68,22 @@ bool GameObject::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatr
 						float pointLightRadius[], float pointFallOutDist[], int& nFrustum)
 {
 	bool result, renderModel;
-	D3DXMATRIX temp = worldMatrix;
+	D3DXMATRIX tempWorldMatrix = worldMatrix;
 	float pos_x, pos_y, pos_z;
 	float radius = 1.0f;
-	m_position->GetPosition(pos_x,pos_y,pos_z);
+	//get current position of object
+	GetCurrentPosition(pos_x,pos_y,pos_z);
+
 	renderModel = frustum->CheckCube(pos_x, pos_y, pos_z, radius);
 	if (renderModel) 
 	{
+
 		//moving the object to the desired location using temporoy world position matrix
-		D3DXMatrixTranslation(&temp, pos_x, pos_y, pos_z);
+		D3DXMatrixTranslation(&tempWorldMatrix, pos_x, pos_y, pos_z);
 		m_model->Render(deviceContext);
 
 		// Render the model using the light shader.
-		result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), temp, viewMatrix, projectionMatrix,
+		result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), tempWorldMatrix, viewMatrix, projectionMatrix,
 			m_model->GetTexture(), LightDirection, ambientColor, diffusedColor, CameraPos,
 			SpecularColor, specularPower, pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist);
 
@@ -103,8 +122,22 @@ void GameObject::Shutdown()
 
 void GameObject::SetPosition(float x, float y, float z)
 {
+	//setting prev position
+	m_xprev = m_x;
+	m_yprev = m_y;
+	m_zprev = m_z;
+
+	//setting new pos;
+	m_x = x;
+	m_y = y;
+	m_z = z;
 	m_position->SetPosition(x,y,z);
 	return;
+}
+
+D3DXVECTOR3 GameObject::GetPosition()
+{
+	return D3DXVECTOR3(m_x,m_y,m_z);
 }
 
 void GameObject::HandleInput(float frameTime)
@@ -119,5 +152,130 @@ void GameObject::HandleInput(float frameTime)
 	keyDown = m_input->IsZPressed();
 	m_position->MoveBackward(keyDown);
 }
+
+void GameObject::GetModelAndTexture(char *& modelName, WCHAR *& textureName)
+{
+	modelName = "../Engine/data/cube.obj";
+	textureName = L"../Engine/data/bricks.dds";
+	
+}
+
+void GameObject::GetCurrentPosition(float &x, float &y, float &z)
+{
+
+	//setting the xprev and y prev
+	//m_xprev = m_x; m_yprev = m_y, m_zprev = m_z;
+	//m_position->GetPosition(x,y,z);
+
+	x = m_x;
+	y = m_y;
+	z = m_z;
+	return;
+}
+
+
+PlayerClass::PlayerClass()
+{
+	m_camera = 0;
+}
+
+PlayerClass::PlayerClass(const PlayerClass &)
+{
+}
+
+PlayerClass::~PlayerClass()
+{
+}
+
+bool PlayerClass::Initialize(ID3D11Device * device, HWND hwnd, InputClass * input,QuadTreeClass* quadTree, CameraClass * camera)
+{
+	bool result;
+	result = GameObject::Initialize(device,hwnd,input, quadTree);
+	if (!result) return false;
+
+	m_camera = camera;
+	if (!m_camera)	return false;
+
+	return true;
+}
+
+void PlayerClass::Shutdown()
+{
+	GameObject::Shutdown();
+	if (m_camera) {
+		m_camera = 0;
+	}
+}
+
+//Player only functionalities
+void PlayerClass::HandleInput(float frameTime)
+{
+	//m_position->SetFrameTime(frameTime);
+
+	bool keyDown;
+	keyDown = m_input->IsUpPressed();
+	m_position->MoveForward(keyDown);
+
+
+	keyDown = m_input->IsDownPressed();
+	m_position->MoveBackward(keyDown);
+
+	keyDown = m_input->IsRightPressed();
+	m_position->MoveRight(keyDown);
+
+	keyDown = m_input->IsLeftPressed();
+	m_position->MoveLeft(keyDown);
+
+
+
+
+	SetHeight();
+
+	SetCameraPosition();
+	return;
+}
+
+void PlayerClass::GetModelAndTexture(char *& modelName, WCHAR *& textureName)
+{
+	modelName = "../Engine/data/cube.obj";
+	textureName = L"../Engine/data/rock.dds";
+}
+
+void PlayerClass::SetHeight()
+{
+	float x, y, z;
+	float height;
+	bool walkable = false;
+	m_position->GetPosition(x, y, z);
+	float newPosx = x, newPosy = y, newPosz = z;
+	bool found = m_quadTree->GetHeightAtPosition(x, z, height, walkable);
+	if (found) {
+		newPosy = height + 1.0f;
+		if (!walkable) {
+			newPosx = m_xprev;
+			newPosz = m_zprev;
+			newPosy = m_yprev;
+		}
+	}
+
+
+	SetPosition(newPosx, newPosy, newPosz);
+	return;
+}
+
+void PlayerClass::SetCameraPosition()
+{
+	D3DXVECTOR3 camPos;
+	float plx, ply, plz;
+
+	camPos = m_camera->GetPosition();
+
+	m_position->GetPosition(plx,ply,plz);
+	m_camera->SetPosition(plx,ply+36.0f,plz-16.0f);	//make z substract by ScreenHeight/2
+	m_camera->SetRotation(70.0f,0.0f,0.0f);
+
+}
+
+
 
 

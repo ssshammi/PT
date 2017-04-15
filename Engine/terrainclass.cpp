@@ -63,7 +63,7 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 		}
 	}
 
-	//RunProceduralFunctions();
+	RunProceduralFunctions();
 
 	//even though we are generating a flat terrain, we still need to normalise it. 
 	// Calculate the normals for the terrain data.
@@ -1140,6 +1140,18 @@ void TerrainClass::CopyVertexArray(void* vertexList)
 {
 	memcpy(vertexList, m_vertices, sizeof(VertexType) * m_vertexCount);
 	return;
+}
+
+bool TerrainClass::GetPlayerStart(float & x, float & y, float & z)
+{
+	if (!m_rooms[0]) {
+		return false;
+	}
+
+	x = m_rooms[0]->vPoint->x;
+	y = m_rooms[0]->vPoint->y;
+	z = m_rooms[0]->vPoint->z;
+	return true;
 }
 
 int TerrainClass::GetVertexCount()

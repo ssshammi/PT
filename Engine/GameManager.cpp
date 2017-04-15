@@ -21,7 +21,7 @@ GameManager::~GameManager()
 {
 }
 
-bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input, LightClass *DirectionalLight, PointLightClass* PointLights[], CameraClass *camera)
+bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input, LightClass *DirectionalLight, PointLightClass* PointLights[], QuadTreeClass* quadTree, CameraClass *camera,D3DXVECTOR3 playerStart)
 {
 	bool result;
 	m_input = input;
@@ -35,13 +35,13 @@ bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input
 	m_pointLights = PointLights;
 	if (!m_pointLights) return false;
 
-	m_playerObject = new GameObject;
+	m_playerObject = new PlayerClass;
 	if (!m_playerObject) return false;
 	
-	result = m_playerObject->Initialize(device, hwnd, m_input);
+	result = m_playerObject->Initialize(device, hwnd, m_input,quadTree,m_camera);
 	if (!result)	return false;
 
-	m_playerObject->SetPosition(60.0f, 5.0f, 60.0f);
+	m_playerObject->SetPosition(playerStart.x, playerStart.y, playerStart.z);
 
 
 
@@ -50,7 +50,7 @@ bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input
 		m_Collectables[i] = new GameObject;
 		if (!m_Collectables[i]) return false;
 		
-		result = m_Collectables[i]->Initialize(device, hwnd, m_input);
+		result = m_Collectables[i]->Initialize(device, hwnd, m_input, quadTree);
 		if (!result) return false;
 
 	}
@@ -130,4 +130,6 @@ void GameManager::Shutdown()
 
 void GameManager::HandleInput(float frameTime)
 {
+	D3DXVECTOR3 playerPos = m_playerObject->GetPosition();
+	m_pointLights[0]->SetPosition(playerPos.x, playerPos.y, playerPos.z);
 }

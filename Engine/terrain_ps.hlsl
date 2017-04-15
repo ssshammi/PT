@@ -83,7 +83,9 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
     {
         textureColor = rockColor;
     }
-
+	textureColor.y = textureColor.x*(input.walkable*4.0f);
+	textureColor.y = textureColor.y * (input.walkable*0.25f);
+	textureColor.z = textureColor.z * (input.walkable*0.25f);
 	// Set the default output color to the ambient light value for all pixels.
     color = ambientColor;
 
@@ -123,8 +125,7 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 	//see if this works or else try *
 	color = color + saturate(sumOfPointLights);
 
-	
-
+	color.x *= input.walkable.x * 2.0f;
 
     // Saturate the final light color.
     color = saturate(color);

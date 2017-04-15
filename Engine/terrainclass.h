@@ -87,6 +87,7 @@ public:
 
 	int GetVertexCount();
 	void CopyVertexArray(void*);
+	bool GetPlayerStart(float &x, float &y, float &z);
 
 private:
 	bool LoadHeightMap(char*);

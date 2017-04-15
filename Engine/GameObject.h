@@ -9,6 +9,7 @@
 #include "positionclass.h"
 #include "lightshaderclass.h"
 #include "quadtreeclass.h"
+#include "cameraclass.h"
 
 class GameObject {
 public:
@@ -16,25 +17,54 @@ public:
 	GameObject(const GameObject&);
 	~GameObject();
 
-	bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input);
+	virtual bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, QuadTreeClass* quadTree);
 	void Frame(float frameTime);
 	bool Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix,
 					FrustumClass *frustum, D3DXVECTOR3 LightDirection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffusedColor, D3DXVECTOR3 CameraPos,
 					D3DXVECTOR4 SpecularColor, float specularPower, D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[], 
 					float pointLightRadius[], float pointFallOutDist[], int &nFrustum);
-
-	void Shutdown();
+	
+	virtual void Shutdown();
 
 
 	void SetPosition(float x, float y, float z);
-private:
-	void HandleInput(float frameTime);
+	D3DXVECTOR3 GetPosition();
 
-private:
+protected:
+	virtual void HandleInput(float frameTime);
+	virtual void GetModelAndTexture(char* &modelName, WCHAR* &textureName);
+	virtual void GetCurrentPosition(float &x, float &y, float &z);
+
+protected:
 	InputClass *m_input;
 	PositionClass *m_position;
 	ModelClass *m_model;
 	LightShaderClass *m_lightshader;
+	QuadTreeClass *m_quadTree;
+
+	float m_x, m_y, m_z;
+	float m_xprev, m_yprev, m_zprev;
+};
+
+
+class PlayerClass : public GameObject {
+public:
+	PlayerClass();
+	PlayerClass(const PlayerClass&);
+	~PlayerClass();
+	virtual bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, QuadTreeClass *quadTree,CameraClass *camera);
+	virtual void Shutdown();
+
+
+protected:
+	virtual void HandleInput(float frametTime);
+	virtual void GetModelAndTexture(char* &modelName, WCHAR* &textureName);
+	void SetHeight();
+	void SetCameraPosition();
+
+protected:
+	CameraClass *m_camera;
+
 };
 
 #endif // !_GAMEOBJECT_H_

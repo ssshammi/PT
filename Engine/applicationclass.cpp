@@ -26,6 +26,8 @@ ApplicationClass::ApplicationClass()
 	m_gameManager = 0;
 	for (int i = 0; i < NUM_LIGHTS; i++)
 		m_PointLights[i] = 0;
+
+	m_freeCam = false;
 }
 
 
@@ -92,11 +94,11 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	// Set the initial position of the camera.
 	cameraX = 50.0f;
-	cameraY = 2.0f;
+	cameraY = 36.0f;
 	cameraZ = -7.0f;
-
+	float cameraRoll = 55.0f;
 	m_Camera->SetPosition(cameraX, cameraY, cameraZ);
-
+	m_Camera->SetRotation(cameraRoll,0.0f,0.0f);
 	// Create the terrain object.
 	m_Terrain = new TerrainClass;
 	if(!m_Terrain)
@@ -168,7 +170,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	// Set the initial position of the viewer to the same as the initial camera position.
 	m_Position->SetPosition(cameraX, cameraY, cameraZ);
-
+	m_Position->SetRotation(cameraRoll, 0.0f,0.0f);
 	// Create the fps object.
 	m_Fps = new FpsClass;
 	if(!m_Fps)
@@ -253,8 +255,8 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Initialize the light object.
-	m_Light->SetAmbientColor(0.05f, 0.05f, 0.05f, 1.0f);
-	m_Light->SetDiffuseColor(0.15f, 0.15f, 0.15f, 1.0f);
+	m_Light->SetAmbientColor(0.0f, 0.0f, 0.0f, 1.0f);
+	m_Light->SetDiffuseColor(0.0f, 0.0f, 0.0f, 1.0f);
 	m_Light->SetDirection(0.0f,0.0f, 1.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(200.0f);
@@ -272,7 +274,8 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	//setting values to point lights
 	m_PointLights[0]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_PointLights[0]->SetPosition(3.0f, 1.0f, 3.0f);
-
+	m_PointLights[1]->SetRadius(10.0f);
+	m_PointLights[0]->SetFallOffDistance(5.0f);
 
 	m_PointLights[1]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_PointLights[1]->SetPosition(30.0f, 1.0f, 30.0f);
@@ -322,9 +325,15 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		return false;
 	}
 
+	float ppx, ppy, ppz;
+	result = m_Terrain->GetPlayerStart(ppx,ppy,ppz);
+	if (!result) return false;
+
+	D3DXVECTOR3 playerStart = D3DXVECTOR3(ppx,ppy,ppz);
+
 	//initialize gameManager
 	m_gameManager = new GameManager;
-	result = m_gameManager->Initialize(m_Direct3D->GetDevice(),hwnd,m_Input,m_Light,m_PointLights,m_Camera);
+	result = m_gameManager->Initialize(m_Direct3D->GetDevice(),hwnd,m_Input,m_Light,m_PointLights, m_QuadTree ,m_Camera,playerStart);
 	if (!result) {
 		MessageBox(hwnd, L"Could not initialize the Game Manager.", L"Error", MB_OK);
 		return false;
@@ -525,7 +534,9 @@ bool ApplicationClass::Frame()
 		return false;
 	}
 
-	m_gameManager->Frame(m_Timer->GetTime());
+	//handle inputs in gameManager
+	if(!m_freeCam)
+		m_gameManager->Frame(m_Timer->GetTime());
 	
 
 
@@ -572,6 +583,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 	//perlin noise
 	keyDown = m_Input->IsXPressedOnce();
 	if (keyDown) {
+		m_freeCam = !m_freeCam;
 		m_Terrain->PassThroughPerlinNoise(m_Direct3D->GetDevice(), keyDown);
 		m_QuadTree->ReinitializeBuffers(m_Terrain,m_Direct3D->GetDevice());
 	}
@@ -589,32 +601,37 @@ bool ApplicationClass::HandleInput(float frameTime)
 		m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
 	}
 
-	keyDown = m_Input->IsLeftPressed();
-	m_Position->TurnLeft(keyDown);
 
-	keyDown = m_Input->IsRightPressed();
-	m_Position->TurnRight(keyDown);
+	if (m_freeCam) {
 
-	keyDown = m_Input->IsUpPressed();
-	m_Position->MoveForward(keyDown);
 
-	keyDown = m_Input->IsDownPressed();
-	m_Position->MoveBackward(keyDown);
+		keyDown = m_Input->IsLeftPressed();
+		m_Position->TurnLeft(keyDown);
 
-	keyDown = m_Input->IsAPressed();
-	m_Position->MoveUpward(keyDown);
+		keyDown = m_Input->IsRightPressed();
+		m_Position->TurnRight(keyDown);
 
-	keyDown = m_Input->IsZPressed();
-	m_Position->MoveDownward(keyDown);
+		keyDown = m_Input->IsUpPressed();
+		m_Position->MoveForward(keyDown);
 
-	keyDown = m_Input->IsPgUpPressed();
-	m_Position->LookUpward(keyDown);
+		keyDown = m_Input->IsDownPressed();
+		m_Position->MoveBackward(keyDown);
 
-	keyDown = m_Input->IsPgDownPressed();
-	m_Position->LookDownward(keyDown);
-	
-	result = SetCameraMovement();
-	if (!result)	return false;
+		keyDown = m_Input->IsAPressed();
+		m_Position->MoveUpward(keyDown);
+
+		keyDown = m_Input->IsZPressed();
+		m_Position->MoveDownward(keyDown);
+
+		keyDown = m_Input->IsPgUpPressed();
+		m_Position->LookUpward(keyDown);
+
+		keyDown = m_Input->IsPgDownPressed();
+		m_Position->LookDownward(keyDown);
+
+		result = SetCameraMovement();
+		if (!result)	return false;
+	}
 
 	return true;
 }
@@ -647,8 +664,6 @@ bool ApplicationClass::SetCameraMovement() {
 			}
 		}
 	}
-
-
 
 	// Set the position of the camera.
 	m_Camera->SetPosition(posX, newPosY, posZ);
