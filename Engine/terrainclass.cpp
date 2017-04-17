@@ -56,9 +56,16 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 		{			
 			index = (m_terrainHeight * j) + i;
 
-			m_heightMap[index].x = (float)i;
+			float i1 = (float)i;
+			float j1 = (float)j;
+			//i1 *= 0.25f;
+			//j1 *= 0.25f;
+			/*if (i% 2 == 0)
+				j1 += 0.5f;*/
+
+			m_heightMap[index].x = i1;
 			m_heightMap[index].y = (float)height;
-			m_heightMap[index].z = (float)j;
+			m_heightMap[index].z = j1;
 
 		}
 	}
@@ -213,9 +220,9 @@ bool TerrainClass::RefreshTerrain(ID3D11Device* device, bool keydown)
 			{
 				index = (m_terrainHeight * j) + i;
 
-				m_heightMap[index].x = (float)i;
+				//m_heightMap[index].x = (float)i;
 				m_heightMap[index].y = 0.0f;
-				m_heightMap[index].z = (float)j;
+				//m_heightMap[index].z = (float)j;
 				m_heightMap[index].walkable = 0.0f;
 			}
 		}
@@ -251,9 +258,7 @@ void TerrainClass::AddRandomNoise() {
 		{
 			index = (m_terrainHeight * j) + i;
 
-			m_heightMap[index].x = (float)i;
 			m_heightMap[index].y = m_heightMap[index].y + RandomFloat(-0.4f, 0.4f);//(float)((rand()%15));//(float)(cos((float)i/(m_terrainWidth/12))*3.0); //magic numbers ahoy, just to ramp up the height of the sin function so its visible.
-			m_heightMap[index].z = (float)j;
 		}
 	}
 
@@ -1047,76 +1052,156 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 	{
 		for (i = 0; i<(m_terrainWidth - 1); i++)
 		{
-			index1 = (m_terrainHeight * j) + i;          // Bottom left.
-			index2 = (m_terrainHeight * j) + (i + 1);      // Bottom right.
-			index3 = (m_terrainHeight * (j + 1)) + i;      // Upper left.
-			index4 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.
+			bool straight = (i % 2 == j%2);
+			//altering the triangles
+			if (straight) {
+				index1 = (m_terrainHeight * j) + i;          // Bottom left.
+				index2 = (m_terrainHeight * j) + (i + 1);      // Bottom right.
+				index3 = (m_terrainHeight * (j + 1)) + i;      // Upper left.
+				index4 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.
+
+				tv = m_heightMap[index3].tv;
+
+				// Modify the texture coordinates to cover the top edge.
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+				m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+				m_vertices[index].walkable = m_heightMap[index3].walkable;
+				index++;
+
+				// Upper right.
+				tu = m_heightMap[index4].tu;
+				tv = m_heightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top and right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+				m_vertices[index].texture = D3DXVECTOR2(tu, tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+				m_vertices[index].walkable = m_heightMap[index4].walkable;
+				index++;
+
+				// Bottom left.
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+				m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+				m_vertices[index].walkable = m_heightMap[index1].walkable;
+				index++;
+
+				// Bottom left.
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+				m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+				m_vertices[index].walkable = m_heightMap[index1].walkable;
+				index++;
+
+				// Upper right.
+				tu = m_heightMap[index4].tu;
+				tv = m_heightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top and right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+				m_vertices[index].texture = D3DXVECTOR2(tu, tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+				m_vertices[index].walkable = m_heightMap[index4].walkable;
+				index++;
+
+				// Bottom right.
+				tu = m_heightMap[index2].tu;
+
+				// Modify the texture coordinates to cover the right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+				m_vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+				m_vertices[index].walkable = m_heightMap[index2].walkable;
+				index++;
+			}
+
+
+			else {
+				index1 = (m_terrainHeight * j) + (i + 1);        // Bottom right.
+				index2 = (m_terrainHeight * (j + 1)) + (i + 1);  // Upper right.   
+				index3 = (m_terrainHeight * j) + i;			     // Bottom left.
+				index4 = (m_terrainHeight * (j + 1)) + i;        //  Upper left.
+				tv = m_heightMap[index3].tv;
+
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
+				m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, m_heightMap[index3].tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
+				m_vertices[index].walkable = m_heightMap[index3].walkable;
+				index++;
+
+				
+				tv = m_heightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top edge.
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+				m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index4].tu, tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+				m_vertices[index].walkable = m_heightMap[index4].walkable;
+				index++;
+
+				// Bottom right.
+				tu = m_heightMap[index1].tu;
+
+				// Modify the texture coordinates to cover the right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+				m_vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index1].tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+				m_vertices[index].walkable = m_heightMap[index1].walkable;
+				index++;
+
+				// Bottom left.
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
+				m_vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index1].tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
+				m_vertices[index].walkable = m_heightMap[index1].walkable;
+				index++;
+
+				//upper left
+				tv = m_heightMap[index4].tv;
+
+				// Modify the texture coordinates to cover the top edge.
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
+				m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index4].tu, tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
+				m_vertices[index].walkable = m_heightMap[index4].walkable;
+				index++;
+
+				// Upper right.
+				tu = m_heightMap[index2].tu;
+				tv = m_heightMap[index2].tv;
+
+				// Modify the texture coordinates to cover the top and right edge.
+				if (tu == 0.0f) { tu = 1.0f; }
+				if (tv == 1.0f) { tv = 0.0f; }
+
+				m_vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
+				m_vertices[index].texture = D3DXVECTOR2(tu, tv);
+				m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
+				m_vertices[index].walkable = m_heightMap[index2].walkable;
+				index++;
+			}
+
 
 															 // Upper left.
-			tv = m_heightMap[index3].tv;
-
-			// Modify the texture coordinates to cover the top edge.
-			if (tv == 1.0f) { tv = 0.0f; }
-
-			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index3].x, m_heightMap[index3].y, m_heightMap[index3].z);
-			m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index3].tu, tv);
-			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index3].nx, m_heightMap[index3].ny, m_heightMap[index3].nz);
-			m_vertices[index].walkable = m_heightMap[index3].walkable;
-			index++;
-
-			// Upper right.
-			tu = m_heightMap[index4].tu;
-			tv = m_heightMap[index4].tv;
-
-			// Modify the texture coordinates to cover the top and right edge.
-			if (tu == 0.0f) { tu = 1.0f; }
-			if (tv == 1.0f) { tv = 0.0f; }
-
-			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-			m_vertices[index].texture = D3DXVECTOR2(tu, tv);
-			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-			m_vertices[index].walkable = m_heightMap[index4].walkable;
-			index++;
-
-			// Bottom left.
-			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-			m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
-			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-			m_vertices[index].walkable = m_heightMap[index1].walkable;
-			index++;
-
-			// Bottom left.
-			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index1].x, m_heightMap[index1].y, m_heightMap[index1].z);
-			m_vertices[index].texture = D3DXVECTOR2(m_heightMap[index1].tu, m_heightMap[index1].tv);
-			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index1].nx, m_heightMap[index1].ny, m_heightMap[index1].nz);
-			m_vertices[index].walkable = m_heightMap[index1].walkable;
-			index++;
-
-			// Upper right.
-			tu = m_heightMap[index4].tu;
-			tv = m_heightMap[index4].tv;
-
-			// Modify the texture coordinates to cover the top and right edge.
-			if (tu == 0.0f) { tu = 1.0f; }
-			if (tv == 1.0f) { tv = 0.0f; }
-
-			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index4].x, m_heightMap[index4].y, m_heightMap[index4].z);
-			m_vertices[index].texture = D3DXVECTOR2(tu, tv);
-			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index4].nx, m_heightMap[index4].ny, m_heightMap[index4].nz);
-			m_vertices[index].walkable = m_heightMap[index4].walkable;
-			index++;
-
-			// Bottom right.
-			tu = m_heightMap[index2].tu;
-
-			// Modify the texture coordinates to cover the right edge.
-			if (tu == 0.0f) { tu = 1.0f; }
-
-			m_vertices[index].position = D3DXVECTOR3(m_heightMap[index2].x, m_heightMap[index2].y, m_heightMap[index2].z);
-			m_vertices[index].texture = D3DXVECTOR2(tu, m_heightMap[index2].tv);
-			m_vertices[index].normal = D3DXVECTOR3(m_heightMap[index2].nx, m_heightMap[index2].ny, m_heightMap[index2].nz);
-			m_vertices[index].walkable = m_heightMap[index2].walkable;
-			index++;
+			
 		}
 	}
 	return true;
