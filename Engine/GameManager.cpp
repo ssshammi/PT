@@ -55,6 +55,8 @@ bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input
 
 	}
 	
+	m_initIntensity = m_pointLights[0]->GetDiffuseColor();
+
 	return true;
 }
 
@@ -133,4 +135,16 @@ void GameManager::HandleInput(float frameTime)
 	//Set light[0] position to player position
 	D3DXVECTOR3 playerPos = m_playerObject->GetPosition();
 	m_pointLights[0]->SetPosition(playerPos.x, playerPos.y, playerPos.z - 1.5f);
+
+	
+	float randa = RandomFloat(-0.1f,0.1f);
+	
+	m_pointLights[0]->SetDiffuseColor(m_initIntensity.x + randa, m_initIntensity.y + randa,	m_initIntensity.z + randa, m_initIntensity.w);
+}
+
+float GameManager::RandomFloat(float a, float b) {
+	float random = ((float)rand()) / (float)RAND_MAX;
+	float diff = b - a;
+	float r = random * diff;
+	return a + r;
 }

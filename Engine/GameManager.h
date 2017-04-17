@@ -23,12 +23,14 @@ public:
 
 private:
 	void HandleInput( float frameTime);
+	float RandomFloat(float, float);
 	CameraClass *m_camera;
 	InputClass *m_input;
 	LightClass *m_directionalLight;
 	PointLightClass **m_pointLights;
 	PlayerClass *m_playerObject;
 	GameObject * m_Collectables[NUM_COLLECTABLES];
+	D3DXVECTOR4 m_initIntensity;
 };
 
 
