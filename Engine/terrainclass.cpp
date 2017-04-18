@@ -407,7 +407,7 @@ void TerrainClass::Faulting()
 		b = (float)y1 - (((float)x1)*m);
 
 
-		float H1 = RandomFloat(-2.0f,2.0f);
+		float H1 = RandomFloat(-5.0f,5.0f);
 		
 		float H2 = H1*0.5f;
 	
@@ -1281,10 +1281,14 @@ bool TerrainClass::GetCollectablePoints( vector<D3DXVECTOR3>  &vc, int N)		//N i
 		//adding the co-ordinates to the given vector
 		if (!repeated) {
 			D3DXVECTOR3 vec;
-			vec.x = m_rooms[a[i]]->vPoint->x;
-			vec.y = m_rooms[a[i]]->vPoint->y - m_rooms[a[i]]->vPoint->height +1.0f  ;
-			vec.z = m_rooms[a[i]]->vPoint->z;
+			int in = m_rooms[a[i]]->vPoint->index;
+			HeightMapType* h = &m_heightMap[in];
+
+			vec.x = h->x;
+			vec.y = h->y + 1.0f  ;
+			vec.z = h->z;
 			vc.push_back(vec);
+			h = 0;
 		}
 	}
 

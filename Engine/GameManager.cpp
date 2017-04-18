@@ -5,7 +5,7 @@ GameManager::GameManager()
 	m_input = 0;
 	m_camera = 0;
 	m_directionalLight = 0;
-
+	m_remaining = NUM_COLLECTABLES;
 
 	m_playerObject = 0;
 
@@ -37,6 +37,8 @@ bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input
 
 	m_playerObject = new PlayerClass;
 	if (!m_playerObject) return false;
+
+	m_playerObject->AttachLight(m_pointLights[0]);
 	
 	result = m_playerObject->Initialize(device, hwnd, m_input,quadTree,m_camera);
 	if (!result)	return false;
@@ -56,8 +58,6 @@ bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input
 	}
 
 
-	//initial intensity of player's point light
-	m_initIntensity = m_pointLights[0]->GetDiffuseColor();
 
 	return true;
 }
@@ -138,31 +138,26 @@ void GameManager::Shutdown()
 
 void GameManager::HandleInput(float frameTime)
 {
-	//Set light[0] position to player position
-	D3DXVECTOR3 playerPos = m_playerObject->GetPosition();
-	m_pointLights[0]->SetPosition(playerPos.x, playerPos.y, playerPos.z - 1.5f);
-
-	
-	float randa = RandomFloat(-0.1f,0.1f);
-	
-	m_pointLights[0]->SetDiffuseColor(m_initIntensity.x + randa, m_initIntensity.y + randa,	m_initIntensity.z + randa, m_initIntensity.w);
+	//check for number of collectables left
+	m_remaining = NUM_COLLECTABLES;
+	for (int i = 0; i < NUM_COLLECTABLES; i++)
+		if (!m_Collectables[i]->enabled)
+			m_remaining--;
+}
+int GameManager::GetRemainingCount() {
+	return m_remaining;
 }
 
-float GameManager::RandomFloat(float a, float b) {
-	float random = ((float)rand()) / (float)RAND_MAX;
-	float diff = b - a;
-	float r = random * diff;
-	return a + r;
-}
 
 void GameManager::SetPlayerAndOthersLocation(D3DXVECTOR3 playerPos, vector<D3DXVECTOR3> vc) {
 	m_playerObject->SetPosition(playerPos,true);
 
 	for (int i = 0; i < NUM_COLLECTABLES; i++) {
+		m_Collectables[i]->ResetCollectable();
 		m_Collectables[i]->SetPosition(vc[i],true);
 	}
 	for (int i = 1; i < NUM_LIGHTS; i++) {
-		m_pointLights[i]->SetPosition(vc[i]);
+		m_pointLights[i]->SetPosition(vc[i].x,vc[i].y+2.0f,vc[i].z);
 		m_Collectables[i]->AttachLight(m_pointLights[i]);
 	}
 

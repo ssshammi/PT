@@ -1,5 +1,6 @@
 #include "GameObject.h"
-
+#include "Utils.h"
+#include <math.h>
 GameObject::GameObject()
 {
 	m_input = 0;
@@ -11,6 +12,13 @@ GameObject::GameObject()
 	m_zprev = 0.0f;
 	enabled = true;
 	m_attachedLight = 0;
+	m_roll = 0.0f;
+	m_pitch = 0.0f;
+	m_yaw = 0.0f;
+
+	m_scale.x = 1.0f;
+	m_scale.y = 1.0f;
+	m_scale.z = 1.0f;
 }
 
 GameObject::GameObject(const GameObject &)
@@ -69,7 +77,6 @@ bool GameObject::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatr
 						float pointLightRadius[], float pointFallOutDist[], int& nFrustum)
 {
 	bool result, renderModel;
-	D3DXMATRIX tempWorldMatrix = worldMatrix;
 	float pos_x, pos_y, pos_z;
 	float radius = 1.0f;
 	//get current position of object
@@ -78,13 +85,23 @@ bool GameObject::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatr
 	renderModel = frustum->CheckCube(pos_x, pos_y, pos_z, radius);
 	if (renderModel) 
 	{
+		D3DXMATRIX S, R, T, M;
+
+		D3DXMatrixScaling(&S, m_scale.x, m_scale.y, m_scale.z);
+		D3DXMatrixTranslation(&T, pos_x, pos_y, pos_z);
+		D3DXMatrixRotationYawPitchRoll(&R, m_yaw, m_pitch, m_roll);
+		M = worldMatrix;
+		D3DXMatrixMultiply(&M, &M, &S);
+		D3DXMatrixMultiply(&M, &M, &R);
+		D3DXMatrixMultiply(&M, &M, &T);
 
 		//moving the object to the desired location using temporoy world position matrix
+		/*D3DXMatrixRotationYawPitchRoll(&tempWorldMatrix, m_yaw,m_pitch,m_roll);
 		D3DXMatrixTranslation(&tempWorldMatrix, pos_x, pos_y, pos_z);
-		m_model->Render(deviceContext);
+		*/m_model->Render(deviceContext);
 
 		// Render the model using the light shader.
-		result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), tempWorldMatrix, viewMatrix, projectionMatrix,
+		result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), M, viewMatrix, projectionMatrix,
 			m_model->GetTexture(), LightDirection, ambientColor, diffusedColor, CameraPos,
 			SpecularColor, specularPower, pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist);
 
@@ -146,6 +163,37 @@ void GameObject::SetPosition(D3DXVECTOR3 v, bool init)
 	return;
 }
 
+void GameObject::SetScale(float f, bool init)
+{
+	D3DXVECTOR3 v = D3DXVECTOR3(f, f, f);
+	SetScale(v,init);
+	
+}
+
+void GameObject::SetScale(D3DXVECTOR3 v, bool init)
+{
+	if (init) {
+		m_initScale = v;
+	}
+	m_scale = v;
+}
+
+void GameObject::SetRotation(D3DXVECTOR3 v, bool init)
+{
+	if (init) {
+		m_initRotation = v;
+	}
+	m_yaw = v.x;
+	m_pitch = v.y;
+	m_roll = v.z;
+}
+
+void GameObject::SetRotation(float yaw, float pitch, float roll, bool init)
+{
+	D3DXVECTOR3 v = D3DXVECTOR3(yaw,pitch,roll);
+	SetRotation(v, init);
+}
+
 D3DXVECTOR3 GameObject::GetPosition()
 {
 	return D3DXVECTOR3(m_x,m_y,m_z);
@@ -154,6 +202,7 @@ D3DXVECTOR3 GameObject::GetPosition()
 void GameObject::AttachLight(PointLightClass * light)
 {
 	m_attachedLight = light;
+	m_initIntensity = m_attachedLight->GetDiffuseColor();
 }
 
 void GameObject::HandleInput(float frameTime)
@@ -193,6 +242,7 @@ void GameObject::GetCurrentPosition(float &x, float &y, float &z)
 PlayerClass::PlayerClass()
 {
 	m_camera = 0;
+	//m_scale.x = 2.0f;
 }
 
 PlayerClass::PlayerClass(const PlayerClass &)
@@ -227,26 +277,29 @@ void PlayerClass::Shutdown()
 void PlayerClass::HandleInput(float frameTime)
 {
 	//m_position->SetFrameTime(frameTime);
-
+	const float pi = 3.14f*2.0f;
 	bool keyDown;
 	keyDown = m_input->IsUpPressed();
 	m_position->MoveForward(keyDown);
-
+	if (keyDown)	m_newYaw = pi*0.0f;
 
 	keyDown = m_input->IsDownPressed();
 	m_position->MoveBackward(keyDown);
+	if (keyDown)	m_newYaw = pi*0.5f;
 
 	keyDown = m_input->IsRightPressed();
 	m_position->MoveRight(keyDown);
+	if (keyDown)	m_newYaw = pi*0.25f;
 
 	keyDown = m_input->IsLeftPressed();
 	m_position->MoveLeft(keyDown);
+	if (keyDown)	m_newYaw =pi* 0.75f;
 
-
-
+	if(abs(m_yaw- m_newYaw)>0.01f)
+	m_yaw = Utils::LerpRadians(m_yaw,m_newYaw,0.25f);
 
 	SetHeight();
-
+	if(m_attachedLight)		SetLightPosition();
 	SetCameraPosition();
 	return;
 }
@@ -298,11 +351,31 @@ void PlayerClass::SetCameraPosition()
 
 }
 
+void PlayerClass::SetLightPosition()
+{
+
+	float forwardDist = 1.1f;
+	// Convert degrees to radians.
+	float radians = m_yaw;
+
+	//Set light[0] position to player position
+	float newx = m_x + sinf(radians) * forwardDist;
+	float newz = m_z + cosf(radians) * forwardDist;
+	m_attachedLight->SetPosition(newx, m_y+forwardDist, newz);
+
+
+	//setting light intensity
+	float randa = Utils::RandomFloat(-0.1f, 0.1f);
+
+	m_attachedLight->SetDiffuseColor(m_initIntensity.x + randa, m_initIntensity.y + randa, m_initIntensity.z + randa, m_initIntensity.w);
+}
+
 CollectablesClass::CollectablesClass()
 {
 	m_player = 0;
 	m_radius = 1.0f;
 	m_timer = 0.0f;
+	m_scale *= 0.8f;
 }
 
 CollectablesClass::CollectablesClass(const CollectablesClass &)
@@ -327,12 +400,15 @@ void CollectablesClass::HandleInput(float frametTime)
 	m_timer += PositionClass::m_frameTime;
 	D3DXVECTOR3 v = m_player->GetPosition() - GetPosition();
 	float dist = D3DXVec3Length(&v);
-
-	if (dist<=m_radius) {
+	//check for collision with player
+	if (dist<=(m_radius)) {
 		enabled = false;
 	}
 
 	if (enabled) {
+		//rotate little
+		m_yaw += 0.05f;
+		//moving up and down slightly
 		const float pi = 3.14F;
 		const float frequency = 10.0f; // Frequency in Hz
 		float yval = 0.5f * (1.0f + sin(2.0f * pi * m_timer/(frequency*180.0f)));
@@ -348,5 +424,14 @@ void CollectablesClass::HandleInput(float frametTime)
 				m_attachedLight->SetDiffuseColor(v.x, v.y, v.z, v.w);
 			}
 		}
+	}
+}
+
+
+
+void CollectablesClass::ResetCollectable() {
+	enabled = true;
+	if (m_attachedLight) {
+		m_attachedLight->SetDiffuseColor(m_initIntensity.x, m_initIntensity.y, m_initIntensity.z, m_initIntensity.w);
 	}
 }

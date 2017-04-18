@@ -30,6 +30,14 @@ public:
 
 	void SetPosition(float x, float y, float z);
 	void SetPosition(D3DXVECTOR3 v, bool init = false);
+
+	void SetScale(float f, bool init = false);
+	void SetScale(D3DXVECTOR3 v, bool init = false);
+
+	void SetRotation(D3DXVECTOR3 v, bool init = false);
+	void SetRotation(float yaw, float pitch, float roll, bool init = false);
+
+
 	D3DXVECTOR3 GetPosition();
 	void AttachLight(PointLightClass* l);
 
@@ -50,9 +58,11 @@ protected:
 	PointLightClass* m_attachedLight;
 
 	float m_x, m_y, m_z;
+	D3DXVECTOR3 m_scale;
 	float m_xprev, m_yprev, m_zprev;
-	D3DXVECTOR3 m_initPos;
-
+	float m_roll, m_pitch, m_yaw;
+	D3DXVECTOR3 m_initPos, m_initScale,m_initRotation;	//initial rotation and position and scale values
+	D3DXVECTOR4 m_initIntensity;
 
 };
 
@@ -67,13 +77,16 @@ public:
 
 
 protected:
+
 	virtual void HandleInput(float frametTime);
 	virtual void GetModelAndTexture(char* &modelName, WCHAR* &textureName);
 	void SetHeight();
 	void SetCameraPosition();
+	void SetLightPosition();
 
 protected:
 	CameraClass *m_camera;
+	float m_newYaw;
 
 };
 
@@ -84,9 +97,11 @@ public:
 	CollectablesClass(const CollectablesClass&);
 	~CollectablesClass();
 	virtual bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, QuadTreeClass *quadTree, PlayerClass *player);
+	void ResetCollectable();
 
 protected:
 	virtual void HandleInput(float frametTime);
+
 
 private:
 	PlayerClass* m_player;

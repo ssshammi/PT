@@ -150,6 +150,7 @@
     <ClInclude Include="textclass.h" />
     <ClInclude Include="textureclass.h" />
     <ClInclude Include="timerclass.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="Voronoi.h" />
   </ItemGroup>
   <ItemGroup>

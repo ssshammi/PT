@@ -536,8 +536,14 @@ bool ApplicationClass::Frame()
 	}
 
 	//handle inputs in gameManager
-	if(!m_freeCam)
+	if (!m_freeCam) {
 		m_gameManager->Frame(m_Timer->GetTime());
+		result = m_Text->SetCpu(m_gameManager->GetRemainingCount(), m_Direct3D->GetDeviceContext());
+		if (!result)
+		{
+			return false;
+		}
+	}
 	
 
 
@@ -560,6 +566,7 @@ bool ApplicationClass::HandleInput(float frameTime)
 	// Set the frame time for calculating the updated position.
 	m_Position->SetFrameTime(frameTime);
 	
+	//switch between Game mode and free movement mode
 	keyDown = m_Input->IsLPressedOnce();
 	if (keyDown) {
 		m_freeCam = !m_freeCam;

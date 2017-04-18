@@ -8,6 +8,7 @@
 #include "pointlightclass.h"
 #include "cameraclass.h"
 
+
 const int NUM_COLLECTABLES = 10;
 class GameManager {
 public:
@@ -21,17 +22,17 @@ public:
 		FrustumClass *frustum, D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[],	float pointLightRadius[], float pointFallOutDist[], int &nFrustum);
 	void Shutdown();
 	void SetPlayerAndOthersLocation(D3DXVECTOR3 playerPos, vector<D3DXVECTOR3> vc);
+	int GetRemainingCount();
 
 private:
 	void HandleInput( float frameTime);
-	float RandomFloat(float, float);
 	CameraClass *m_camera;
 	InputClass *m_input;
 	LightClass *m_directionalLight;
 	PointLightClass **m_pointLights;
 	PlayerClass *m_playerObject;
 	CollectablesClass * m_Collectables[NUM_COLLECTABLES];
-	D3DXVECTOR4 m_initIntensity;
+	int m_remaining;
 };
 
 
