@@ -108,7 +108,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 
 	// Initialize the terrain object.
 		//result = m_Terrain->Initialize(m_Direct3D->GetDevice(), "../Engine/data/heightmap01.bmp",L".. / Engine / data / dirt01.dds");
-	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), 256,256, L"../Engine/data/grass.dds", L"../Engine/data/slope.dds",
+	result = m_Terrain->InitializeTerrain(m_Direct3D->GetDevice(), 256,256, L"../Engine/data/rock.dds", L"../Engine/data/slope.dds",
 		L"../Engine/data/rock.dds");   //initialise the flat terrain.
 	if(!result)
 	{

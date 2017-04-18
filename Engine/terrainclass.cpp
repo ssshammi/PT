@@ -1305,7 +1305,7 @@ bool TerrainClass::GetCollectablePoints( vector<D3DXVECTOR3>  &vc, int N)		//N i
 		if (!repeated) {
 			D3DXVECTOR3 vec;
 			//getting the point in the midipoint of the given random corridor
-			HeightMapType* h = (m_corridors[b[i]][m_corridors[b[i]].size()/2]);
+			HeightMapType* h = (m_corridors[b[i]] [m_corridors[b[i]].size()/2]);
 
 			vec.x = h->x;
 			vec.y = h->y + 1.0f;

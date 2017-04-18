@@ -151,9 +151,9 @@ D3DXVECTOR3 GameObject::GetPosition()
 	return D3DXVECTOR3(m_x,m_y,m_z);
 }
 
-void GameObject::AttachLight(PointLightClass * l)
+void GameObject::AttachLight(PointLightClass * light)
 {
-	m_attachedLight = l;
+	m_attachedLight = light;
 }
 
 void GameObject::HandleInput(float frameTime)
@@ -330,8 +330,6 @@ void CollectablesClass::HandleInput(float frametTime)
 
 	if (dist<=m_radius) {
 		enabled = false;
-		if (m_attachedLight)
-			m_attachedLight->SetDiffuseColor(0.0f, 0.0f, 0.0f, 0.0f);
 	}
 
 	if (enabled) {
@@ -339,5 +337,16 @@ void CollectablesClass::HandleInput(float frametTime)
 		const float frequency = 10.0f; // Frequency in Hz
 		float yval = 0.5f * (1.0f + sin(2.0f * pi * m_timer/(frequency*180.0f)));
 		SetPosition(m_x,m_initPos.y+yval,m_z);
+	}
+	else {
+		if (m_attachedLight) {
+			D3DXVECTOR4 l = m_attachedLight->GetDiffuseColor();
+			if (l.x+l.y+l.z > 0.0001f)//check if almost zero
+			{
+				D3DXVECTOR4 v;
+				D3DXVec4Lerp(&v,&l,&D3DXVECTOR4(0.0f,0.0f,0.0f,1.0f),0.05f);
+				m_attachedLight->SetDiffuseColor(v.x, v.y, v.z, v.w);
+			}
+		}
 	}
 }
