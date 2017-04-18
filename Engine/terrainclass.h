@@ -87,7 +87,11 @@ public:
 
 	int GetVertexCount();
 	void CopyVertexArray(void*);
+	
 	bool GetPlayerStart(float &x, float &y, float &z);
+	D3DXVECTOR3 GetPlayerStart();
+
+	bool GetCollectablePoints(vector<D3DXVECTOR3>& vc, int N);
 
 private:
 	bool LoadHeightMap(char*);
@@ -112,6 +116,7 @@ private:
 	HeightMapType* m_heightMap;
 	TextureClass  *m_GrassTexture,*m_SlopeTexture, *m_RockTexture;
 	vector<VoronoiRegion*> m_rooms;
+	vector<vector<HeightMapType*>> m_corridors;
 	Vornoi *m_vornoi;
 
 

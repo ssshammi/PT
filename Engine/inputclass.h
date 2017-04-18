@@ -61,6 +61,8 @@ public:
 	bool IsPgUpPressed();
 	bool IsPgDownPressed();
 
+
+	int m_screenWidth, m_screenHeight;
 private:
 	bool ReadKeyboard();
 	bool ReadMouse();
@@ -75,7 +77,6 @@ private:
 	unsigned char m_keyboardPrevious[256];
 	DIMOUSESTATE m_mouseState;
 
-	int m_screenWidth, m_screenHeight;
 	int m_mouseX, m_mouseY;
 };
 

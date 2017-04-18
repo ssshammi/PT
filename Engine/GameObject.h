@@ -10,6 +10,7 @@
 #include "lightshaderclass.h"
 #include "quadtreeclass.h"
 #include "cameraclass.h"
+#include "pointlightclass.h"
 
 class GameObject {
 public:
@@ -28,22 +29,31 @@ public:
 
 
 	void SetPosition(float x, float y, float z);
+	void SetPosition(D3DXVECTOR3 v, bool init = false);
 	D3DXVECTOR3 GetPosition();
+	void AttachLight(PointLightClass* l);
+
+public:
+	bool enabled;
 
 protected:
 	virtual void HandleInput(float frameTime);
 	virtual void GetModelAndTexture(char* &modelName, WCHAR* &textureName);
 	virtual void GetCurrentPosition(float &x, float &y, float &z);
-
+	
 protected:
 	InputClass *m_input;
 	PositionClass *m_position;
 	ModelClass *m_model;
 	LightShaderClass *m_lightshader;
 	QuadTreeClass *m_quadTree;
+	PointLightClass* m_attachedLight;
 
 	float m_x, m_y, m_z;
 	float m_xprev, m_yprev, m_zprev;
+	D3DXVECTOR3 m_initPos;
+
+
 };
 
 
@@ -65,6 +75,23 @@ protected:
 protected:
 	CameraClass *m_camera;
 
+};
+
+
+class CollectablesClass : public GameObject {
+public:
+	CollectablesClass();
+	CollectablesClass(const CollectablesClass&);
+	~CollectablesClass();
+	virtual bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, QuadTreeClass *quadTree, PlayerClass *player);
+
+protected:
+	virtual void HandleInput(float frametTime);
+
+private:
+	PlayerClass* m_player;
+	float m_radius;	//radius for the collision of the collectable
+	float m_timer;
 };
 
 #endif // !_GAMEOBJECT_H_

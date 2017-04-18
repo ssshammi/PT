@@ -44,7 +44,7 @@ public:
 	Vornoi(const Vornoi&);
 	~Vornoi();
 
-	void VoronoiRegions(HeightMapType *hmap,int terrainWidth,int terrainHeight, vector<VoronoiRegion*> &rooms);
+	void VoronoiRegions(HeightMapType *hmap,int terrainWidth,int terrainHeight, vector<VoronoiRegion*> &rooms, vector<vector<HeightMapType*>> &corridors);
 	void ReleaseVornoi();
 
 private:
@@ -61,6 +61,7 @@ private:
 	vector<VoronoiRegion*> *m_VRegions;
 	vector<VoronoiPoint*> *m_VPoints;
 	vector<VoronoiRegion*> m_rooms;
+	vector<vector<HeightMapType*>> m_corridors;
 
 	HeightMapType* m_heightMap;
 	int m_terrainWidth;

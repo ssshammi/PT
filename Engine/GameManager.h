@@ -15,11 +15,12 @@ public:
 	GameManager(const GameManager&);
 	~GameManager();
 
-	bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, LightClass *DirectionalLight, PointLightClass* PointLights[], QuadTreeClass* quadTree,CameraClass *camera, D3DXVECTOR3 playerStart);
+	bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, LightClass *DirectionalLight, PointLightClass* PointLights[], QuadTreeClass* quadTree,CameraClass *camera);
 	void Frame(float frametime);
 	bool Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatrix, D3DXMATRIX viewMatrix, D3DXMATRIX projectionMatrix, 
 		FrustumClass *frustum, D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[],	float pointLightRadius[], float pointFallOutDist[], int &nFrustum);
 	void Shutdown();
+	void SetPlayerAndOthersLocation(D3DXVECTOR3 playerPos, vector<D3DXVECTOR3> vc);
 
 private:
 	void HandleInput( float frameTime);
@@ -29,7 +30,7 @@ private:
 	LightClass *m_directionalLight;
 	PointLightClass **m_pointLights;
 	PlayerClass *m_playerObject;
-	GameObject * m_Collectables[NUM_COLLECTABLES];
+	CollectablesClass * m_Collectables[NUM_COLLECTABLES];
 	D3DXVECTOR4 m_initIntensity;
 };
 

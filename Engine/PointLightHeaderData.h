@@ -3,7 +3,7 @@
 #define _POINTLIGHTHEADERDATA_H_
 
 //GLOBALS
-const int NUM_LIGHTS = 4;
+const int NUM_LIGHTS = 10;
 
 //Point light buffers
 struct PointLightColorBufferType

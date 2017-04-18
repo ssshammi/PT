@@ -21,7 +21,7 @@ GameManager::~GameManager()
 {
 }
 
-bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input, LightClass *DirectionalLight, PointLightClass* PointLights[], QuadTreeClass* quadTree, CameraClass *camera,D3DXVECTOR3 playerStart)
+bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input, LightClass *DirectionalLight, PointLightClass* PointLights[], QuadTreeClass* quadTree, CameraClass *camera)
 {
 	bool result;
 	m_input = input;
@@ -41,20 +41,22 @@ bool GameManager::Initialize(ID3D11Device * device, HWND hwnd, InputClass *input
 	result = m_playerObject->Initialize(device, hwnd, m_input,quadTree,m_camera);
 	if (!result)	return false;
 
-	m_playerObject->SetPosition(playerStart.x, playerStart.y, playerStart.z);
+	//m_playerObject->SetPosition(playerStart.x, playerStart.y, playerStart.z);
 
 
 
 
 	for (int i = 0; i < NUM_COLLECTABLES; i++) {
-		m_Collectables[i] = new GameObject;
+		m_Collectables[i] = new CollectablesClass;
 		if (!m_Collectables[i]) return false;
 		
-		result = m_Collectables[i]->Initialize(device, hwnd, m_input, quadTree);
+		result = m_Collectables[i]->Initialize(device, hwnd, m_input, quadTree, m_playerObject);
 		if (!result) return false;
 
 	}
-	
+
+
+	//initial intensity of player's point light
 	m_initIntensity = m_pointLights[0]->GetDiffuseColor();
 
 	return true;
@@ -88,6 +90,7 @@ bool GameManager::Render(ID3D11DeviceContext * deviceContext, D3DXMATRIX worldMa
 	//Collectables render
 
 	for (int i = 0; i < NUM_COLLECTABLES; i++) {
+		if(m_Collectables[i]->enabled)
 		result = m_Collectables[i]->Render(deviceContext, worldMatrix, viewMatrix, projectionMatrix, frustum, m_directionalLight->GetDirection(), m_directionalLight->GetAmbientColor(),
 			m_directionalLight->GetDiffuseColor(), m_camera->GetPosition(), m_directionalLight->GetSpecularColor(), m_directionalLight->GetSpecularPower(),
 			pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist, nFrustum);
@@ -104,8 +107,11 @@ void GameManager::Shutdown()
 {
 	if (m_Collectables) {
 		for (int i = 0; i < NUM_COLLECTABLES; i++) {
-			m_Collectables[i]->Shutdown();
-			m_Collectables[i] = 0;
+			if (m_Collectables[i]) 
+			{
+				m_Collectables[i]->Shutdown();
+				m_Collectables[i] = 0;
+			}
 		}
 		//delete[] m_Collectables;
 	}
@@ -147,4 +153,17 @@ float GameManager::RandomFloat(float a, float b) {
 	float diff = b - a;
 	float r = random * diff;
 	return a + r;
+}
+
+void GameManager::SetPlayerAndOthersLocation(D3DXVECTOR3 playerPos, vector<D3DXVECTOR3> vc) {
+	m_playerObject->SetPosition(playerPos,true);
+
+	for (int i = 0; i < NUM_COLLECTABLES; i++) {
+		m_Collectables[i]->SetPosition(vc[i],true);
+	}
+	for (int i = 1; i < NUM_LIGHTS; i++) {
+		m_pointLights[i]->SetPosition(vc[i]);
+		m_Collectables[i]->AttachLight(m_pointLights[i]);
+	}
+
 }

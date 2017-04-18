@@ -38,7 +38,7 @@ Vornoi::~Vornoi()
 }
 
 
-void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHeight, vector<VoronoiRegion*> &rooms) {
+void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHeight, vector<VoronoiRegion*> &rooms, vector<vector<HeightMapType*>> &corridors) {
 	m_heightMap = hmap;
 	m_terrainWidth = terrainWidth;
 	m_terrainHeight = terrainHeight;
@@ -51,6 +51,10 @@ void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHe
 
 	//passing the rooms to the terrain class
 	rooms = m_rooms;
+
+	//passing the corridors to the terrain class
+	corridors = m_corridors;
+
 	//releasing heightmap pointer before returning
 	m_heightMap = 0;
 	return;
@@ -492,6 +496,7 @@ void Vornoi::makeCorridors(const vector<Edge*> &tree) {
 		}*/
 #pragma endregion
 
+		vector<HeightMapType*> c1, c2;
 		//creating columns
 		for (int j = x1; j <= x2; j++)
 		{
@@ -502,6 +507,8 @@ void Vornoi::makeCorridors(const vector<Edge*> &tree) {
 					m_heightMap[(k*m_terrainHeight) + j].y -= 5;
 				}
 			}
+			//adding the required points to a vector to access later
+			c1.push_back(&m_heightMap[(ycol2*m_terrainHeight) + j]);
 		}
 		for (int j = y1; j <= y2; j++)
 		{
@@ -512,8 +519,13 @@ void Vornoi::makeCorridors(const vector<Edge*> &tree) {
 					m_heightMap[(j*m_terrainHeight) + k].y -= 5;
 				}
 			}
+			//adding required points to vector to access later
+			c2.push_back(&m_heightMap[(j*m_terrainHeight) + xcol1]);
 		}
 
+		//collecting both the corridors into a main vector
+		m_corridors.push_back(c1);
+		m_corridors.push_back(c2);
 
 	}
 
@@ -554,9 +566,15 @@ void Vornoi::ReleaseVornoi()
 		m_VRegions = 0;
 	}
 
-	if (!m_rooms.empty()) {
-		m_rooms.clear();
+	if (!m_rooms.empty())		m_rooms.clear();
+	
+	if (!m_corridors.empty()) {
+		for (vector<vector<HeightMapType*>>::iterator i = m_corridors.begin(); i != m_corridors.end(); ++i) {
+			(*i).clear();
+		}
+		m_corridors.clear();
 	}
+	
 
 
 	return;

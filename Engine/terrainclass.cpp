@@ -183,6 +183,13 @@ void TerrainClass::Shutdown()
 
 	if (!m_rooms.empty()) {	m_rooms.clear();}
 
+	if (!m_corridors.empty()) 
+	{
+		for (vector<vector<HeightMapType*>>::iterator i = m_corridors.begin(); i != m_corridors.end(); ++i) 
+			(*i).clear();
+
+		m_corridors.clear();
+	}
 	//release texture
 	ReleaseTexture();
 
@@ -506,7 +513,7 @@ bool TerrainClass::VoronoiRegions(ID3D11Device* device, bool keydown)
 void TerrainClass::VoronoiRegions()
 {
 	m_vornoi = new Vornoi();
-	m_vornoi->VoronoiRegions(m_heightMap,m_terrainWidth,m_terrainHeight,m_rooms);
+	m_vornoi->VoronoiRegions(m_heightMap,m_terrainWidth,m_terrainHeight,m_rooms,m_corridors);
 	m_heightMap[m_rooms.at(0)->vPoint->index].y = 20.0f;
 }
 
@@ -1236,6 +1243,85 @@ bool TerrainClass::GetPlayerStart(float & x, float & y, float & z)
 	x = m_rooms[0]->vPoint->x;
 	y = m_rooms[0]->vPoint->y;
 	z = m_rooms[0]->vPoint->z;
+	return true;
+}
+D3DXVECTOR3 TerrainClass::GetPlayerStart()
+{
+	if (!m_rooms[0]) {
+		return D3DXVECTOR3(0,0,0);
+	}
+	D3DXVECTOR3 v;
+	v.x = m_rooms[0]->vPoint->x;
+	v.y = m_rooms[0]->vPoint->y;
+	v.z = m_rooms[0]->vPoint->z;
+	return v;
+}
+
+bool TerrainClass::GetCollectablePoints( vector<D3DXVECTOR3>  &vc, int N)		//N is the number of collectables
+{
+	int nC = m_corridors.size();	//total number of corridors
+	int nR = m_rooms.size();		//total number of rooms
+	int pR = RandomFloat(0,N/2);	//Getting a certain number of collectables to be foudn in the rooms
+	int pC = N - pR;				//getting a certain number of collectables to be foudn in the corridors
+	int *a = new int [pR];			//creating an array to hold the index of a random room
+	int *b = new int[pC];			//creating an array to hold the index of a random column
+
+	//finding the points in the rooms
+	for (int i = 0; i < pR; i++) {
+		a[i] = RandomFloat(1,nR-1);	//0 is not used as the player is spawned at 0
+		bool repeated = false;
+		//ensuring that the index obtained above is not repeated
+		for (int j = i - 1; j >= 0; j--) {
+			if (a[i] == a[j]) {
+				i--;
+				repeated = true;
+				break;
+			}
+		}
+		//adding the co-ordinates to the given vector
+		if (!repeated) {
+			D3DXVECTOR3 vec;
+			vec.x = m_rooms[a[i]]->vPoint->x;
+			vec.y = m_rooms[a[i]]->vPoint->y - m_rooms[a[i]]->vPoint->height +1.0f  ;
+			vec.z = m_rooms[a[i]]->vPoint->z;
+			vc.push_back(vec);
+		}
+	}
+
+
+	//finding the points in the corridors
+	for (int i = 0; i < pC; i++) {
+		b[i] = RandomFloat(0, nC - 1);
+		bool repeated = false;
+		//ensuring that the index obtained above is not repeated
+		for (int j = i - 1; j >= 0; j--) {
+			if (b[i] == b[j]) {
+				i--;
+				repeated = true;
+				break;
+			}
+		}
+		//adding the unique co-ordinates to the given vector
+		if (!repeated) {
+			D3DXVECTOR3 vec;
+			//getting the point in the midipoint of the given random corridor
+			HeightMapType* h = (m_corridors[b[i]][m_corridors[b[i]].size()/2]);
+
+			vec.x = h->x;
+			vec.y = h->y + 1.0f;
+			vec.z = h->z;
+			vc.push_back(vec);
+
+			h = 0;
+		}
+	}
+
+
+	delete[]a;
+	a = 0;
+	delete[] b;
+	b = 0;
+
 	return true;
 }
 

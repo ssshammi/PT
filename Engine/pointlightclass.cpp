@@ -34,6 +34,12 @@ void PointLightClass::SetPosition(float x, float y, float z)
 	return;
 }
 
+void PointLightClass::SetPosition(D3DXVECTOR3 v)
+{
+	SetPosition(v.x,v.y,v.z);
+	return;
+}
+
 void PointLightClass::SetRadius(float newRadius)
 {
 	m_radius = newRadius;

@@ -41,12 +41,12 @@ public:
 	void LookDownward(bool);
 
 public:
+	static float m_frameTime;
 	float m_xprev, m_yprev, m_zprev;
 
 private:
 	float m_positionX, m_positionY, m_positionZ;
 	float m_rotationX, m_rotationY, m_rotationZ;
-	static float m_frameTime;
 
 	float m_forwardSpeed, m_backwardSpeed, m_rightSpeed, m_leftSpeed;
 	float m_upwardSpeed, m_downwardSpeed;

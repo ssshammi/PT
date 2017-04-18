@@ -9,7 +9,8 @@ GameObject::GameObject()
 	m_xprev = 0.0f;
 	m_yprev = 0.0f;
 	m_zprev = 0.0f;
-
+	enabled = true;
+	m_attachedLight = 0;
 }
 
 GameObject::GameObject(const GameObject &)
@@ -135,9 +136,24 @@ void GameObject::SetPosition(float x, float y, float z)
 	return;
 }
 
+void GameObject::SetPosition(D3DXVECTOR3 v, bool init)
+{
+	if (init)
+	{
+		m_initPos = v;
+	}
+	SetPosition(v.x, v.y, v.z);
+	return;
+}
+
 D3DXVECTOR3 GameObject::GetPosition()
 {
 	return D3DXVECTOR3(m_x,m_y,m_z);
+}
+
+void GameObject::AttachLight(PointLightClass * l)
+{
+	m_attachedLight = l;
 }
 
 void GameObject::HandleInput(float frameTime)
@@ -271,11 +287,57 @@ void PlayerClass::SetCameraPosition()
 	camPos = m_camera->GetPosition();
 
 	m_position->GetPosition(plx,ply,plz);
-	m_camera->SetPosition(plx,ply+36.0f,plz-16.0f);	//make z substract by ScreenHeight/2
+	D3DXVECTOR3 newCamPos;
+	float screenHeight =(float) m_input->m_screenHeight, screenWidth = (float)m_input->m_screenWidth;
+	//new z position
+	plz = plz - (16.0f*screenHeight*800.0f / (screenWidth*600.0f));
+	D3DXVec3Lerp(&newCamPos, &camPos, &D3DXVECTOR3(plx, ply + (36.0f/**screenHeight/600.0f*/),plz ),0.15f);
+	//smoothen camera
+	m_camera->SetPosition(newCamPos.x,newCamPos.y,newCamPos.z);	//make z substract by ScreenHeight/2
 	m_camera->SetRotation(70.0f,0.0f,0.0f);
 
 }
 
+CollectablesClass::CollectablesClass()
+{
+	m_player = 0;
+	m_radius = 1.0f;
+	m_timer = 0.0f;
+}
 
+CollectablesClass::CollectablesClass(const CollectablesClass &)
+{
+}
 
+CollectablesClass::~CollectablesClass()
+{
+}
 
+bool CollectablesClass::Initialize(ID3D11Device * device, HWND hwnd, InputClass * input, QuadTreeClass * quadTree, PlayerClass * player)
+{
+	GameObject::Initialize(device,hwnd,input,quadTree);
+	m_player = player;
+	if (!m_player)	return false;
+
+	return true;
+}
+
+void CollectablesClass::HandleInput(float frametTime)
+{
+	m_timer += PositionClass::m_frameTime;
+	D3DXVECTOR3 v = m_player->GetPosition() - GetPosition();
+	float dist = D3DXVec3Length(&v);
+
+	if (dist<=m_radius) {
+		enabled = false;
+		if (m_attachedLight)
+			m_attachedLight->SetDiffuseColor(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
+	if (enabled) {
+		const float pi = 3.14F;
+		const float frequency = 10.0f; // Frequency in Hz
+		float yval = 0.5f * (1.0f + sin(2.0f * pi * m_timer/(frequency*180.0f)));
+		SetPosition(m_x,m_initPos.y+yval,m_z);
+	}
+}

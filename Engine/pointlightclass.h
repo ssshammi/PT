@@ -25,6 +25,7 @@ public:
 
 	void SetDiffuseColor(float, float, float, float);
 	void SetPosition(float, float, float);
+	void SetPosition(D3DXVECTOR3);
 	void SetRadius(float newRadius);
 	void SetFallOffDistance(float value);
 

@@ -267,6 +267,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		m_PointLights[i] = new PointLightClass;
 		m_PointLights[i]->SetRadius(25.0f);
 		m_PointLights[i]->SetFallOffDistance(15.0f);
+		m_PointLights[i]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 		//if not initialized
 		//if (!m_PointLights[i]) return false;
 	}
@@ -277,15 +278,11 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	m_PointLights[0]->SetRadius(13.0f);
 	m_PointLights[0]->SetFallOffDistance(5.0f);
 
-	m_PointLights[1]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_PointLights[1]->SetPosition(30.0f, 1.0f, 30.0f);
-	m_PointLights[1]->SetRadius(17.0f);
+	m_PointLights[1]->SetDiffuseColor(0.0f, 1.0f, 0.0f, 1.0f);
 
-	m_PointLights[2]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_PointLights[2]->SetPosition(60.0f, 1.0f, 60.0f);
+	m_PointLights[2]->SetDiffuseColor(0.0f, 0.0f, 1.0f, 1.0f);
 
-	m_PointLights[3]->SetDiffuseColor(0.7f, 0.7f, 0.7f, 1.0f);
-	m_PointLights[3]->SetPosition(80.0f, 1.0f, 80.0f);
+	m_PointLights[3]->SetDiffuseColor(1.0f, 0.0f, 0.0f, 1.0f);
 	//return true;
 	
 	// Create the model list object.
@@ -324,21 +321,25 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 		MessageBox(hwnd, L"Could not initialize the quad tree object.", L"Error", MB_OK);
 		return false;
 	}
-
-	float ppx, ppy, ppz;
-	result = m_Terrain->GetPlayerStart(ppx,ppy,ppz);
-	if (!result) return false;
-
-	D3DXVECTOR3 playerStart = D3DXVECTOR3(ppx,ppy,ppz);
-
+	
+	
+	
 	//initialize gameManager
 	m_gameManager = new GameManager;
-	result = m_gameManager->Initialize(m_Direct3D->GetDevice(),hwnd,m_Input,m_Light,m_PointLights, m_QuadTree ,m_Camera,playerStart);
+	result = m_gameManager->Initialize(m_Direct3D->GetDevice(),hwnd,m_Input,m_Light,m_PointLights, m_QuadTree ,m_Camera);
 	if (!result) {
 		MessageBox(hwnd, L"Could not initialize the Game Manager.", L"Error", MB_OK);
 		return false;
 	}
 
+
+	//obtaining collectables position from the terrain:
+	vector<D3DXVECTOR3> vc;
+	m_Terrain->GetCollectablePoints(vc, NUM_COLLECTABLES);
+	//setting obtained locations to game manager
+	m_gameManager->SetPlayerAndOthersLocation(m_Terrain->GetPlayerStart(),vc);
+
+	return true;
 }
 
 
@@ -614,6 +615,12 @@ bool ApplicationClass::HandleInput(float frameTime)
 		if (keyDown) {
 			m_Terrain->VoronoiRegions(m_Direct3D->GetDevice(), keyDown);
 			m_QuadTree->ReinitializeBuffers(m_Terrain, m_Direct3D->GetDevice());
+
+			//obtaining collectables position from the terrain:
+			vector<D3DXVECTOR3> vc;
+			m_Terrain->GetCollectablePoints(vc, NUM_COLLECTABLES);
+			//setting obtained locations to game manager
+			m_gameManager->SetPlayerAndOthersLocation(m_Terrain->GetPlayerStart(), vc);
 		}
 		//camera Movement
 

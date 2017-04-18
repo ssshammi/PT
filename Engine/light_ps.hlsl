@@ -1,4 +1,4 @@
-#define NUM_LIGHTS 4
+#define NUM_LIGHTS 10
 
 Texture2D shaderTexture;
 SamplerState SampleType;
