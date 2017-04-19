@@ -55,6 +55,7 @@ private:
 	bool isCircular(int v, bool visited[], vector<int, allocator<int>> **adj, int parent);	//This one is used for recursion
 	void makeCorridors(const vector<Edge*> &tree);
 
+	float GetWalkableValue(float i, float j);
 	float RandomFloat(float a, float b);
 
 private:

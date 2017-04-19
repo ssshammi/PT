@@ -86,7 +86,7 @@ protected:
 
 protected:
 	CameraClass *m_camera;
-	float m_newYaw;
+	float m_newYaw;		//Storing the desired yaw for the player's looking direction
 
 };
 

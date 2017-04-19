@@ -20,6 +20,7 @@ public:
 		return shortest_angle * amount;
 	}*/
 
+	//Lerp between 2 angles to the closest outcome
 	static float LerpAngle(float start, float end, float amount) {
 		float difference = abs(end - start);
 		if (difference > 180)
@@ -49,7 +50,7 @@ public:
 		return (fmod(value , rangeZero));
 	}
 
-
+	//Lerp between 2 angles to the closest out come (Radians)
 	static float LerpRadians(float start, float end, float amount) {
 		const float ratio = 180.0f/3.14f;
 		end *= ratio;

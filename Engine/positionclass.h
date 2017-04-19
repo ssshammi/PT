@@ -39,6 +39,7 @@ public:
 	void TurnRight(bool);
 	void LookUpward(bool);
 	void LookDownward(bool);
+	void SetAcceleration( float deaccel = 0.0007f, float acc = 0.001f,  float maxSpeed = 0.03f);
 
 public:
 	static float m_frameTime;
@@ -52,6 +53,7 @@ private:
 	float m_upwardSpeed, m_downwardSpeed;
 	float m_leftTurnSpeed, m_rightTurnSpeed;
 	float m_lookUpSpeed, m_lookDownSpeed;
+	float m_acc, m_deacc, m_maxSpeed;
 };
 
 #endif

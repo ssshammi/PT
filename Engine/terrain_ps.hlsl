@@ -65,29 +65,38 @@ float4 TerrainPixelShader(PixelInputType input) : SV_TARGET
 
 	slope = 1-input.normal.y;
 
-
+	float thresh1 = 0.2f, thresh2 = 0.7f;
+	textureColor = grassColor;
 	 // Determine which texture to use based on height.
-    if(slope < 0.2)
-    {
-        blendAmount = slope / 0.2f;
-        textureColor = lerp(grassColor, slopeColor, blendAmount);
-    }
+    //if(slope < thresh1)
+    //{
+    //    blendAmount = slope / thresh1;
+    //    textureColor = lerp(grassColor, slopeColor, blendAmount);
+    //}
 	
-    if((slope < 0.7) && (slope >= 0.2f))
+    if((slope < thresh2) && (slope >= thresh1))
     {
-        blendAmount = (slope - 0.2f) * (1.0f / (0.7f - 0.2f));
-        textureColor = lerp(slopeColor, rockColor, blendAmount);
+        blendAmount = (slope - thresh1) * (1.0f / (thresh2 - thresh1));
+        textureColor = lerp(grassColor, rockColor, blendAmount);
     }
 
-    if(slope >= 0.7) 
+    if(slope >= thresh2) 
     {
         textureColor = rockColor;
     }
+
+		 
 	//setting red value to texture
 	if (diffuseColor.x != 1.0f) {
+		if (input.walkable.x > 1.0f) {
+			input.walkable.x = saturate(abs(2.0f - input.walkable.x));
+			textureColor = lerp(slopeColor, textureColor, input.walkable.x);
+		}
+
 		textureColor.y = textureColor.x*(input.walkable*4.0f);
 		textureColor.y = textureColor.y * ((input.walkable*0.25f));
 		textureColor.z = textureColor.z * ((input.walkable*0.25f));
+		
 		//textureColor.xyz += diffuseColor.x;
 	}
 	textureColor.x = lerp(textureColor.x,1.0f, diffuseColor.x);

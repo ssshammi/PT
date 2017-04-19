@@ -262,6 +262,8 @@ bool PlayerClass::Initialize(ID3D11Device * device, HWND hwnd, InputClass * inpu
 	m_camera = camera;
 	if (!m_camera)	return false;
 
+	m_position->SetAcceleration(0.001f,0.0009f,0.023f);
+
 	return true;
 }
 
@@ -295,7 +297,7 @@ void PlayerClass::HandleInput(float frameTime)
 	m_position->MoveLeft(keyDown);
 	if (keyDown)	m_newYaw =pi* 0.75f;
 
-	if(abs(m_yaw- m_newYaw)>0.01f)
+
 	m_yaw = Utils::LerpRadians(m_yaw,m_newYaw,0.25f);
 
 	SetHeight();
@@ -373,7 +375,7 @@ void PlayerClass::SetLightPosition()
 CollectablesClass::CollectablesClass()
 {
 	m_player = 0;
-	m_radius = 1.0f;
+	m_radius = 1.5f;
 	m_timer = 0.0f;
 	m_scale *= 0.8f;
 }

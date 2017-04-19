@@ -1,6 +1,8 @@
 #include "Voronoi.h"
 #include <algorithm>
 #include <ctime>
+#include "PerlinNoise.h"
+#include <iostream>
 
 void Vornoi::AddVoronoiPointAt(int IndexInArray, int RegionIndex) {
 
@@ -44,10 +46,12 @@ void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHe
 	m_terrainHeight = terrainHeight;
 
 
+	PerlinNoise::initialize();
 	srand(time(NULL));
 
+	int nOfRooms = RandomFloat(180,230);
 	//creating vornoi Regions with parameters
-	VoronoiRegions(200,20);
+	VoronoiRegions(nOfRooms,nOfRooms/10);
 
 	//passing the rooms to the terrain class
 	rooms = m_rooms;
@@ -57,6 +61,8 @@ void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHe
 
 	//releasing heightmap pointer before returning
 	m_heightMap = 0;
+
+	PerlinNoise::Release();
 	return;
 
 }
@@ -200,7 +206,7 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 				int index = m_VRegions->at(n[planes])->VRegionIndices.at(i);
 				if (m_heightMap[index].walkable == 0.0f) {
 					m_heightMap[index].y -= 5.0f;
-					m_heightMap[index].walkable = 1.0f;
+					m_heightMap[index].walkable = GetWalkableValue(m_heightMap[index].x, m_heightMap[index].z);
 				}
 			}
 		}
@@ -440,6 +446,7 @@ bool Vornoi::isCircular(int v, bool visited[], vector<int, allocator<int>> **adj
 
 
 void Vornoi::makeCorridors(const vector<Edge*> &tree) {
+
 	for (int i = 0; i < tree.size(); i++) {
 		//getting index of the point and accessing the index in terms for the heightmap
 		int p1Index = m_rooms.at(tree.at(i)->p1.index)->vPoint->index;
@@ -503,8 +510,9 @@ void Vornoi::makeCorridors(const vector<Edge*> &tree) {
 			//giving it a height using the original position of y2
 			for (int k = ycol2 - 2; k < ycol2 + 2; k++) {
 				if (m_heightMap[(k*m_terrainHeight) + j].walkable == 0.0f) {
-					m_heightMap[(k*m_terrainHeight) + j].walkable = 1.0f;
-					m_heightMap[(k*m_terrainHeight) + j].y -= 5;
+					int index = (k*m_terrainHeight) + j;
+					m_heightMap[index].walkable = GetWalkableValue(m_heightMap[index].x, m_heightMap[index].z);
+					m_heightMap[index].y -= 5;
 				}
 			}
 			//adding the required points to a vector to access later
@@ -515,8 +523,9 @@ void Vornoi::makeCorridors(const vector<Edge*> &tree) {
 			//giving it a width using the original position of x1
 			for (int k = xcol1 - 2; k < xcol1 + 2; k++) {
 				if (m_heightMap[(j*m_terrainHeight) + k].walkable == 0.0f) {
-					m_heightMap[(j*m_terrainHeight) + k].walkable = 1.0f;
-					m_heightMap[(j*m_terrainHeight) + k].y -= 5;
+					int index = (j*m_terrainHeight) + k;
+					m_heightMap[index].walkable = GetWalkableValue(m_heightMap[index].x, m_heightMap[index].z);
+					m_heightMap[index].y -= 5;
 				}
 			}
 			//adding required points to vector to access later
@@ -580,6 +589,13 @@ void Vornoi::ReleaseVornoi()
 	return;
 }
 
+
+float Vornoi::GetWalkableValue(float i, float j)
+{
+	float f = PerlinNoise::noise((double)j / 10, 1.0f, (double)i / 10);
+	f = max(f*1.25f, 0.0f);				//clamping values with 0
+	return f+1.0f;		//adding 1 so that player can always walk
+}
 
 float Vornoi::RandomFloat(float a, float b) {
 	float random = ((float)rand()) / (float)RAND_MAX;

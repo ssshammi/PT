@@ -28,6 +28,11 @@ PositionClass::PositionClass()
 	m_rightTurnSpeed = 0.0f;
 	m_lookUpSpeed    = 0.0f;
 	m_lookDownSpeed  = 0.0f;
+
+
+	m_acc = 0.001f;
+	m_deacc = 0.0007f;
+	m_maxSpeed = 0.03f;
 }
 
 
@@ -96,16 +101,16 @@ void PositionClass::MoveForward(bool keydown)
 	// Update the forward speed movement based on the frame time and whether the user is holding the key down or not.
 	if(keydown)
 	{
-		m_forwardSpeed += m_frameTime * 0.001f;
+		m_forwardSpeed += m_frameTime * m_acc;
 
-		if(m_forwardSpeed > (m_frameTime * 0.03f))
+		if(m_forwardSpeed > (m_frameTime * m_maxSpeed))
 		{
-			m_forwardSpeed = m_frameTime * 0.03f;
+			m_forwardSpeed = m_frameTime * m_maxSpeed;
 		}
 	}
 	else
 	{
-		m_forwardSpeed -= m_frameTime * 0.0007f;
+		m_forwardSpeed -= m_frameTime * m_deacc;
 
 		if(m_forwardSpeed < 0.0f)
 		{
@@ -132,16 +137,16 @@ void PositionClass::MoveBackward(bool keydown)
 	// Update the backward speed movement based on the frame time and whether the user is holding the key down or not.
 	if(keydown)
 	{
-		m_backwardSpeed += m_frameTime * 0.001f;
+		m_backwardSpeed += m_frameTime * m_acc;
 
-		if(m_backwardSpeed > (m_frameTime * 0.03f))
+		if(m_backwardSpeed > (m_frameTime * m_maxSpeed))
 		{
-			m_backwardSpeed = m_frameTime * 0.03f;
+			m_backwardSpeed = m_frameTime * m_maxSpeed;
 		}
 	}
 	else
 	{
-		m_backwardSpeed -= m_frameTime * 0.0007f;
+		m_backwardSpeed -= m_frameTime * m_deacc;
 		
 		if(m_backwardSpeed < 0.0f)
 		{
@@ -167,16 +172,16 @@ void PositionClass::MoveRight(bool keydown)
 	// Update the forward speed movement based on the frame time and whether the user is holding the key down or not.
 	if (keydown)
 	{
-		m_rightSpeed += m_frameTime * 0.001f;
+		m_rightSpeed += m_frameTime * m_acc;
 
-		if (m_rightSpeed > (m_frameTime * 0.03f))
+		if (m_rightSpeed > (m_frameTime * m_maxSpeed))
 		{
-			m_rightSpeed = m_frameTime * 0.03f;
+			m_rightSpeed = m_frameTime * m_maxSpeed;
 		}
 	}
 	else
 	{
-		m_rightSpeed -= m_frameTime * 0.0007f;
+		m_rightSpeed -= m_frameTime * m_deacc;
 
 		if (m_rightSpeed < 0.0f)
 		{
@@ -202,16 +207,16 @@ void PositionClass::MoveLeft(bool keydown)
 	// Update the forward speed movement based on the frame time and whether the user is holding the key down or not.
 	if (keydown)
 	{
-		m_leftSpeed += m_frameTime * 0.001f;
+		m_leftSpeed += m_frameTime * m_acc;
 
-		if (m_leftSpeed > (m_frameTime * 0.03f))
+		if (m_leftSpeed > (m_frameTime * m_maxSpeed))
 		{
-			m_leftSpeed = m_frameTime * 0.03f;
+			m_leftSpeed = m_frameTime * m_maxSpeed;
 		}
 	}
 	else
 	{
-		m_leftSpeed -= m_frameTime * 0.0007f;
+		m_leftSpeed -= m_frameTime * m_deacc;
 
 		if (m_leftSpeed < 0.0f)
 		{
@@ -237,9 +242,9 @@ void PositionClass::MoveUpward(bool keydown)
 	{
 		m_upwardSpeed += m_frameTime * 0.003f;
 
-		if(m_upwardSpeed > (m_frameTime * 0.03f))
+		if(m_upwardSpeed > (m_frameTime * m_maxSpeed))
 		{
-			m_upwardSpeed = m_frameTime * 0.03f;
+			m_upwardSpeed = m_frameTime * m_maxSpeed;
 		}
 	}
 	else
@@ -266,9 +271,9 @@ void PositionClass::MoveDownward(bool keydown)
 	{
 		m_downwardSpeed += m_frameTime * 0.003f;
 
-		if(m_downwardSpeed > (m_frameTime * 0.03f))
+		if(m_downwardSpeed > (m_frameTime * m_maxSpeed))
 		{
-			m_downwardSpeed = m_frameTime * 0.03f;
+			m_downwardSpeed = m_frameTime * m_maxSpeed;
 		}
 	}
 	else
@@ -425,4 +430,11 @@ void PositionClass::LookDownward(bool keydown)
 	}
 
 	return;
+}
+
+void PositionClass::SetAcceleration( float deaccel, float acc, float maxSpeed)
+{
+	m_acc = acc;
+	m_deacc = deaccel;
+	m_maxSpeed = maxSpeed;
 }

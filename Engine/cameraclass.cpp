@@ -100,7 +100,7 @@ void CameraClass::Render()
 	// Translate the rotated camera position to the location of the viewer.
 	lookAt = position + lookAt;
 
-	D3DXMatrixOrthoLH(&m_viewMatrix,400,300,0.1f,1000);
+	//D3DXMatrixOrthoLH(&m_viewMatrix,400,300,0.1f,1000);
 
 	// Finally create the view matrix from the three updated vectors.
 	D3DXMatrixLookAtLH(&m_viewMatrix, &position, &lookAt, &up);
