@@ -828,7 +828,7 @@ bool ApplicationClass::RenderGraphics()
 #pragma region RenderingQuadTerrain
 
 	// Construct the frustum.
-	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+	//m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
 	// Set the terrain shader parameters that it will use for rendering.
 	result = m_TerrainShader->SetShaderParameters(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetAmbientColor(),
