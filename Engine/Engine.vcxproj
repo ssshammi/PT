@@ -98,6 +98,7 @@
     <ClCompile Include="frustumclass.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="horizontalblurshaderclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="lightclass.cpp" />
     <ClCompile Include="lightshaderclass.cpp" />
@@ -105,15 +106,18 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
+    <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="pointlightclass.cpp" />
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="quadtreeclass.cpp" />
+    <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="terrainclass.cpp" />
     <ClCompile Include="terrainshaderclass.cpp" />
     <ClCompile Include="textclass.cpp" />
     <ClCompile Include="textureclass.cpp" />
+    <ClCompile Include="textureshaderclass.cpp" />
     <ClCompile Include="timerclass.cpp" />
     <ClCompile Include="Voronoi.cpp" />
   </ItemGroup>
@@ -132,6 +136,7 @@
     <ClInclude Include="frustumclass.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="horizontalblurshaderclass.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="lightclass.h" />
     <ClInclude Include="LightManager.h" />
@@ -139,16 +144,19 @@
     <ClInclude Include="LoadFromMaya.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
+    <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="pointlightclass.h" />
     <ClInclude Include="PointLightHeaderData.h" />
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="quadtreeclass.h" />
+    <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="terrainclass.h" />
     <ClInclude Include="terrainshaderclass.h" />
     <ClInclude Include="textclass.h" />
     <ClInclude Include="textureclass.h" />
+    <ClInclude Include="textureshaderclass.h" />
     <ClInclude Include="timerclass.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Voronoi.h" />
@@ -156,12 +164,18 @@
   <ItemGroup>
     <None Include="font.ps" />
     <None Include="font.vs" />
+    <None Include="horizontalblur.ps" />
+    <None Include="horizontalblur.vs" />
     <None Include="terrain_ps.hlsl" />
     <None Include="terrain_vs.hlsl" />
+    <None Include="verticalblur.ps" />
+    <None Include="verticalblur.vs" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="light_ps.hlsl" />
     <FxCompile Include="light_vs.hlsl" />
+    <FxCompile Include="texture_ps.hlsl" />
+    <FxCompile Include="texture_vs.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

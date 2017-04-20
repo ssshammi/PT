@@ -36,6 +36,11 @@ const float SCREEN_NEAR = 0.1f;
 #include "quadtreeclass.h"
 #include "pointlightclass.h"
 #include "GameManager.h"
+//for blurring effect
+#include "horizontalblurshaderclass.h"
+#include "orthowindowclass.h"
+#include "rendertextureclass.h"
+#include "textureshaderclass.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
@@ -54,7 +59,21 @@ public:
 private:
 	bool HandleInput(float);
 	bool RenderGraphics();
+	bool Render();
 	bool SetCameraMovement();
+
+	bool InitializeBlurObjects(HWND, int screenWidth, int screenHeight);
+	void ShutdownBlurObjects();
+	bool RenderSceneToTexture();
+	bool DownSampleTexture();
+	bool RenderHorizontalBlurToTexture();
+	bool RenderVerticalBlurToTexture();
+	bool UpSampleTexture();
+	bool Render2DTextureScene();
+
+private:
+	D3DXMATRIX GetTransfromedMatrix(D3DXMATRIX worldMatrix);
+
 
 private:
 	InputClass* m_Input;
@@ -77,6 +96,14 @@ private:
 	PointLightClass* m_PointLights[NUM_LIGHTS];
 	GameManager* m_gameManager;
 	bool m_freeCam;
+
+	HorizontalBlurShaderClass* m_HorizontalBlurShader;
+	HorizontalBlurShaderClass* m_VerticalBlurShader;	//same shader class used as no difference.
+
+	RenderTextureClass *m_RenderTexture, *m_DownSampleTexure, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_UpSampleTexure;
+
+	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
+	TextureShaderClass* m_TextureShader;
 };
 
 #endif
