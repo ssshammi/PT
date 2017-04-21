@@ -1031,7 +1031,7 @@ bool ApplicationClass::Render()
 
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
 
-	if (m_freeCam ||!m_radialBlur) {
+	if (!m_radialBlur) {
 		RenderGraphics();
 	}
 	else {
@@ -1452,12 +1452,11 @@ D3DXMATRIX ApplicationClass::GetTransfromedMatrix(D3DXMATRIX worldMatrix) {
 	D3DXMATRIX r, p, m = worldMatrix;
 	D3DXVECTOR3 cam = m_Camera->GetPosition();
 	D3DXVECTOR3 rot = m_Camera->GetRotation();
-	float rady = (rot.y)* 0.0174532925f;
-	float radx = (rot.x)* 0.0174532925f;
-	D3DXMatrixTranslation(&m, 0, 0, 100);
-	D3DXMatrixRotationYawPitchRoll(&r, rady, radx, (rot.z )* 0.0174532925f);
-	D3DXMatrixTranslation(&p, cam.x , cam.y, cam.z );
-	D3DXMatrixMultiply(&m, &m, &r);
+
+	D3DXMatrixTranslation(&m, 0, 0, 100);	//Adding some distance between the camera and the orthographic quad to render in
+	D3DXMatrixRotationYawPitchRoll(&r, (rot.y)* 0.0174532925f, (rot.x)* 0.0174532925f, (rot.z )* 0.0174532925f);	//rotating the matrix according to the camera's rotation
+	D3DXMatrixTranslation(&p, cam.x , cam.y, cam.z );	//moving the matrix to the camera's location
+	D3DXMatrixMultiply(&m, &m, &r);			//multiplying the matrices
 	D3DXMatrixMultiply(&m, &m, &p);
 
 	return m;
