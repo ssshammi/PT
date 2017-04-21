@@ -106,6 +106,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="modellistclass.cpp" />
+    <ClCompile Include="MultiplyShaderClass.cpp" />
     <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="pointlightclass.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="LoadFromMaya.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="modellistclass.h" />
+    <ClInclude Include="MultiplyShaderClass.h" />
     <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="pointlightclass.h" />
@@ -174,6 +176,7 @@
   <ItemGroup>
     <FxCompile Include="light_ps.hlsl" />
     <FxCompile Include="light_vs.hlsl" />
+    <FxCompile Include="textureMul_ps.hlsl" />
     <FxCompile Include="texture_ps.hlsl" />
     <FxCompile Include="texture_vs.hlsl" />
   </ItemGroup>

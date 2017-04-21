@@ -8,7 +8,7 @@
 /////////////
 // GLOBALS //
 /////////////
-const bool FULL_SCREEN = false;
+const bool FULL_SCREEN = true;
 const bool VSYNC_ENABLED = true;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
@@ -41,7 +41,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "orthowindowclass.h"
 #include "rendertextureclass.h"
 #include "textureshaderclass.h"
-
+#include "MultiplyShaderClass.h"
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,6 +73,7 @@ private:
 
 private:
 	D3DXMATRIX GetTransfromedMatrix(D3DXMATRIX worldMatrix);
+	bool RenderText();
 
 
 private:
@@ -95,7 +96,7 @@ private:
 	QuadTreeClass* m_QuadTree;
 	PointLightClass* m_PointLights[NUM_LIGHTS];
 	GameManager* m_gameManager;
-	bool m_freeCam;
+	bool m_freeCam, m_radialBlur;
 
 	HorizontalBlurShaderClass* m_HorizontalBlurShader;
 	HorizontalBlurShaderClass* m_VerticalBlurShader;	//same shader class used as no difference.
@@ -104,6 +105,8 @@ private:
 
 	OrthoWindowClass *m_SmallWindow, *m_FullScreenWindow;
 	TextureShaderClass* m_TextureShader;
+	MultiplyShaderClass* m_MultiplyShader;
+	
 };
 
 #endif

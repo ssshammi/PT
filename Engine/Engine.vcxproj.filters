@@ -123,6 +123,9 @@
     <ClCompile Include="textureshaderclass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MultiplyShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -239,6 +242,9 @@
     <ClInclude Include="textureshaderclass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MultiplyShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="font.ps">
@@ -253,10 +259,18 @@
     <None Include="terrain_vs.hlsl">
       <Filter>Shader Files</Filter>
     </None>
-    <None Include="horizontalblur.ps" />
-    <None Include="horizontalblur.vs" />
-    <None Include="verticalblur.ps" />
-    <None Include="verticalblur.vs" />
+    <None Include="horizontalblur.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="horizontalblur.vs">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="verticalblur.ps">
+      <Filter>Shader Files</Filter>
+    </None>
+    <None Include="verticalblur.vs">
+      <Filter>Shader Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="light_ps.hlsl">
@@ -269,6 +283,9 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="texture_vs.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="textureMul_ps.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>
