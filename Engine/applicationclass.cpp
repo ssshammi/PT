@@ -181,8 +181,8 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 	}
 
 	// Set the initial position of the viewer to the same as the initial camera position.
-	m_Position->SetPosition(0.0f, 0.0f, -10.0f);
-	m_Position->SetRotation(0.0f, 0.0f,0.0f);
+	m_Position->SetPosition(cameraX, cameraY, cameraZ);
+	m_Position->SetRotation(cameraRoll, 0.0f,0.0f);
 	// Create the fps object.
 	m_Fps = new FpsClass;
 	if(!m_Fps)
@@ -806,13 +806,15 @@ bool ApplicationClass::Frame()
 	//handle inputs in gameManager
 	if (!m_freeCam) {
 		m_gameManager->Frame(m_Timer->GetTime());
-		result = m_Text->SetCpu(m_gameManager->GetRemainingCount(), m_Direct3D->GetDeviceContext());
-		if (!result)
-		{
-			return false;
-		}
 	}
-	
+
+	//setting text objects
+	result = m_Text->SetCollectablesValue(m_gameManager->GetRemainingCount(), m_radialBlur, m_Direct3D->GetDeviceContext());
+	if (!result)	return false;
+
+	//set free cam texton or off
+	result = m_Text->SetFreeCamMode(m_freeCam, m_Direct3D->GetDeviceContext());
+	if (!result)	return false;
 
 
 	// Render the graphics.
@@ -848,6 +850,13 @@ bool ApplicationClass::HandleInput(float frameTime)
 		}
 
 	}
+
+	keyDown = m_Input->IsBPressedOnce();
+	if (keyDown) {
+		m_radialBlur = !m_radialBlur;
+	}
+
+
 	//if freecam mode is on
 	if (m_freeCam) 
 	{
@@ -927,12 +936,6 @@ bool ApplicationClass::HandleInput(float frameTime)
 		if (!result)	return false;
 	}
 
-	else {
-		keyDown = m_Input->IsRPressedOnce();
-		if (keyDown) {
-			m_radialBlur = !m_radialBlur;
-		}
-	}
 
 	return true;
 }
@@ -971,7 +974,7 @@ bool ApplicationClass::SetCameraMovement() {
 	m_Camera->SetRotation(rotX, rotY, rotZ);
 
 	// Update the position values in the text object.
-	result = m_Text->SetCameraPosition(posX, newPosY, posZ, m_Direct3D->GetDeviceContext());
+	/*result = m_Text->SetCameraPosition(posX, newPosY, posZ, m_Direct3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
@@ -982,7 +985,7 @@ bool ApplicationClass::SetCameraMovement() {
 	if (!result)
 	{
 		return false;
-	}
+	}*/
 
 
 	return true;
@@ -1126,11 +1129,11 @@ bool ApplicationClass::RenderGraphics()
 
 
 	// Set the number of models that was actually rendered this frame.
-	result = m_Text->SetRenderCount(renderCount, m_Direct3D->GetDeviceContext());
+	/*result = m_Text->SetRenderCount(renderCount, m_Direct3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
-	}
+	}*/
 	
 
 #pragma region RenderingQuadTerrain
@@ -1149,11 +1152,11 @@ bool ApplicationClass::RenderGraphics()
 
 
 	// Set the number of rendered terrain triangles since some were culled.
-	result = m_Text->SetRenderCountQuad(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext());
+	/*result = m_Text->SetRenderCountQuad(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext());
 	if (!result)
 	{
 		return false;
-	}
+	}*/
 
 #pragma endregion
 	

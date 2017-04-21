@@ -48,6 +48,9 @@ public:
 	bool SetCameraRotation(float, float, float, ID3D11DeviceContext*);
 	bool SetRenderCountQuad(int , ID3D11DeviceContext* );
 
+	bool SetCollectablesValue(int collectables,bool blurMode, ID3D11DeviceContext * deviceContext);
+
+	bool SetFreeCamMode(bool enabled, ID3D11DeviceContext * deviceContext);
 
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);
@@ -60,7 +63,7 @@ private:
 	D3DXMATRIX m_baseViewMatrix;
 	FontClass* m_Font;
 	SentenceType *m_sentence1, *m_sentence2, *m_sentence3, *m_sentence4, *m_sentence5;
-	SentenceType *m_sentence6, *m_sentence7, *m_sentence8, *m_sentence9, *m_sentence10, *m_sentence11, *m_sentence12;
+	SentenceType *m_sentence6, *m_sentence7, *m_sentence8, *m_sentence9, *m_sentence10, *m_sentence11, *m_sentence12, *m_sentence13,*m_sentence14;
 };
 
 #endif

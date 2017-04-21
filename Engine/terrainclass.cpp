@@ -514,7 +514,18 @@ void TerrainClass::VoronoiRegions()
 {
 	m_vornoi = new Vornoi();
 	m_vornoi->VoronoiRegions(m_heightMap,m_terrainWidth,m_terrainHeight,m_rooms,m_corridors);
-	m_heightMap[m_rooms.at(0)->vPoint->index].y = 20.0f;
+	int index = m_rooms.at(0)->vPoint->index;
+	float h = 1.50f;
+	m_heightMap[index].y += h;
+	m_heightMap[index+1].y += h;
+	m_heightMap[index - 1].y += h;
+	m_heightMap[index + m_terrainWidth].y += h;
+	m_heightMap[index - m_terrainWidth].y += h;
+	m_heightMap[index + m_terrainWidth+1].y += h;
+	m_heightMap[index + m_terrainWidth-1].y += h;
+	m_heightMap[index - m_terrainWidth+1].y += h;
+	m_heightMap[index - m_terrainWidth-1].y += h;
+
 }
 
 

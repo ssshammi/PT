@@ -299,6 +299,11 @@ bool InputClass::IsXPressedOnce()
 	return false;
 }
 
+bool InputClass::IsBPressedOnce()
+{
+	return OnPressed(DIK_B);
+}
+
 bool InputClass::IsFPressedOnce()
 {
 	// Do a bitwise and on the keyboard state to check if the key is currently being pressed.

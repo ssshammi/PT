@@ -45,25 +45,24 @@ float dist = sqrt(dir.x*dir.x + dir.y*dir.y);
 float4 color = shaderTexture.Sample(SampleType, input.tex);
 float4 sum = color;
 
-	float px[8];
-	px[0] = -0.065f;
-	px[1] = -0.04f;
-	px[2] = -0.02f;
-	px[3] = -0.01f;
-	px[4] = 0.01f;
-	px[5] = 0.02f;
-	px[6] = 0.04f;
-	px[7] = 0.065f;
+	float px[10];
+	px[0] = -0.08f;
+	px[1] = -0.06f;
+	px[2] = -0.04f;
+	px[3] = -0.025f;
+	px[4] = -0.01f;
+	px[5] = 0.01f;
+	px[6] = 0.025f;
+	px[7] = 0.04f;
+	px[8] = 0.06f;
+	px[9] = -0.08f;
 
-	for (int i = 0; i < 8; i++) {
-		float2 uv = input.tex + dir*px[i];
-		uv.x = lerp(0,uv.x,uv.x<0);
-		//uv.y = clamp(uv.y, 0, 1);
-		sum += shaderTexture.Sample(SampleType, uv);
+	for (int i = 0; i < 10; i++) {
+		sum += shaderTexture.Sample(SampleType, input.tex + dir*px[i]);
 	}
 
-	sum *= 1.0f / 9.0f;
-	float t =saturate(dist * amt);
+	sum *= 1.0f / 11.0f;
+	float t =clamp(dist * amt,0,1);
 
 	return lerp(color,sum,t);
 
