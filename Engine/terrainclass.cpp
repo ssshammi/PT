@@ -58,10 +58,6 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 
 			float i1 = (float)i;
 			float j1 = (float)j;
-			//i1 *= 0.25f;
-			//j1 *= 0.25f;
-			/*if (i% 2 == 0)
-				j1 += 0.5f;*/
 
 			m_heightMap[index].x = i1;
 			m_heightMap[index].y = (float)height;

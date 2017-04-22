@@ -338,15 +338,6 @@ void Vornoi::DelanuayTriangles() {
 
 		//release Data
 		points.clear();
-#pragma region AdjesencyMatrixRelease_Sucks
-		/*
-		for (int i = 0; i < nPoints; i++) {
-		delete[] A[i];
-		A[i] = 0;
-		}
-		delete[] A;
-		A = 0;*/
-#pragma endregion
 
 
 		minSpanTree.clear();
@@ -385,16 +376,6 @@ bool Vornoi::isCircular(vector<Edge*> &edges) {
 		}
 	}
 
-	//ofstream fout;
-	//fout.open("../Engine/Debug/Adj.txt");
-	//for (int i = 0; i < nPoints; i++) {
-	//	for (std::vector< int >::iterator e = adj[i]->begin(); e != adj[i]->end(); ++e) {
-	//		fout << (*e) << "  ";
-	//	}
-	//	fout << endl;
-	//}
-	//fout.close();
-	////return false;
 #pragma endregion
 
 	bool *visited = new bool[nPoints];

@@ -729,7 +729,7 @@ void QuadTreeClass::FindNode(NodeType* node, float x, float z, float& height,boo
 		// If this was the triangle then quit the function and the height will be returned to the calling function.
 		if (foundHeight)
 		{
-			if(b1 +b2+b3>=3.0f)
+			if(b1 >=1.0f && b2>=1.0f && b3>=1.0f)
 				canWalk =true;
 
 			return;
