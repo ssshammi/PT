@@ -140,7 +140,6 @@
     <ClInclude Include="horizontalblurshaderclass.h" />
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="lightclass.h" />
-    <ClInclude Include="LightManager.h" />
     <ClInclude Include="lightshaderclass.h" />
     <ClInclude Include="LoadFromMaya.h" />
     <ClInclude Include="modelclass.h" />

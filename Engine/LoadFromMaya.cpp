@@ -1,9 +1,6 @@
 #include <vector>
 #include "LoadFromMaya.h"
 
-//////////////////
-// MAIN PROGRAM //
-//////////////////
 bool LoadFromMaya::LoadFromMayaNow(char* filename, char& newName, int& vertexCounted)
 {
 	bool result;

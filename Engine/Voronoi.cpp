@@ -6,6 +6,7 @@
 
 void Vornoi::AddVoronoiPointAt(int IndexInArray, int RegionIndex) {
 
+	//creating a voronoi seed and the definitio of a voronoi region for each voronoi seed
 	VoronoiPoint* v = new VoronoiPoint;
 	VoronoiRegion* r = new VoronoiRegion;
 	v->x = m_heightMap[IndexInArray].x;
@@ -40,7 +41,7 @@ Vornoi::~Vornoi()
 }
 
 
-void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHeight, vector<VoronoiRegion*> &rooms, vector<vector<HeightMapType*>> &corridors) {
+void Vornoi::GenerateVoronoiDungeon(HeightMapType *hmap, int terrainWidth, int terrainHeight, vector<VoronoiRegion*> &rooms, vector<vector<HeightMapType*>> &corridors) {
 	m_heightMap = hmap;
 	m_terrainWidth = terrainWidth;
 	m_terrainHeight = terrainHeight;
@@ -49,7 +50,7 @@ void Vornoi::VoronoiRegions(HeightMapType *hmap, int terrainWidth, int terrainHe
 	PerlinNoise::initialize();
 	srand(time(NULL));
 
-	int nOfRooms = RandomFloat(180,230);
+	int nOfRooms = RandomFloat(140,230);
 	//creating vornoi Regions with parameters
 	VoronoiRegions(nOfRooms,nOfRooms/10);
 
@@ -77,10 +78,13 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 	bool randomizePoints = false;
 	bool showFullDiagram = false;
 
+
+	//create a grid of x*x points on the height map to be the seeds of the voronoi region. 
 	if (!randomizePoints) {
 		int k = 0;
 		int pointsInCols = (int)sqrt((float)numOfPoints);
 		int inBetweens = m_terrainWidth / pointsInCols;
+
 		for (int j = 0; j < pointsInCols; j++) {
 			for (int i = 0; i < pointsInCols; i++) {
 				int nj = (inBetweens / 2);
@@ -92,10 +96,10 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 				k++;
 			}
 		}
-		//if (k != numOfPoints)
+
 		numOfPoints = k;
 	}
-	else {
+	else {					//randomizing the points instead of creating a grid. (Only for testing)
 		for (int k = 0; k < numOfPoints; k++) {
 			int i = 0, j = 0, index = 0;
 
@@ -107,7 +111,7 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 		}
 	}
 
-	//getVoronoi points
+	//get Voronoi data for each index of the height map
 	for (int j = 0; j < m_terrainHeight; j++) {
 		for (int i = 0; i < m_terrainWidth; i++)
 		{
@@ -142,28 +146,25 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 		}
 	}
 
-
-	if (resetMesh) {
+	//if the mesh needs to be reset (Clearing all voronoi regions already present on the map)
+	if (resetMesh) 
+	{
 		for (int j = 0; j < m_terrainHeight; j++) {
 			for (int i = 0; i < m_terrainWidth; i++) {
 				int index = (j*m_terrainWidth) + i;
 				m_heightMap[index].y = 0.0f;
-
+				m_heightMap[index].walkable = 0.0f;
 			}
 		}
 	}
 
 
-	//Get n unique points
+	//Get n unique rooms from the generated voronoi regions
 	int *n = new int[numOfRooms];
 	int numOfRows = sqrt(numOfPoints);
 	for (int i = 0; i < numOfRooms; i++) {
 		n[i] = (int)RandomFloat(numOfRows + 1, (float)numOfPoints - numOfRows - 1);
-		/*if ((n[i] >= 0 &&n[i]<=numOfRows)|| (n[i] <= numOfPoints-1 && n[i] >= numOfPoints - numOfRows)) //Up and down borders
-		{
-		i--;
-		continue;
-		}*/
+		
 		if ((n[i] % numOfRows == 0) || (n[i] % numOfRows == numOfRows - 1)) //Left Right Border
 		{
 			i--;
@@ -171,6 +172,7 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 		}
 		for (int j = i - 1; j >= 0; j--)
 		{
+			//check for adjescent room
 			if (n[i] == n[j] || n[i] + 1 == n[j] || n[i] - 1 == n[j] || n[i] + numOfRows == n[j] || n[i] - numOfRows == n[j] || n[i] - numOfRows + 1 == n[j] || n[i] - numOfRows - 1 == n[j] || n[i] + 1 + numOfRows == n[j] || n[i] - 1 + numOfRows == n[j])
 			{
 				i--;
@@ -179,14 +181,12 @@ void Vornoi::VoronoiRegions(int numOfPoints = 200, int numOfRooms = 20) {
 		}
 	}
 
-
+	//pushing all the unique rooms into a new vector.
 	for (int planes = 0; planes < numOfRooms; planes++) {
 		m_rooms.push_back(m_VRegions->at(n[planes]));
-		//m_heightMap[m_rooms.at(planes)->vPoint->index].y = 50.0f;
 	}
 
-	//settingHeight
-
+	//settingHeight so that the dungeon is indented / show all the voronoi regions if needed
 	if (showFullDiagram) {
 		for (int j = 0; j < m_terrainHeight; j++) {
 			for (int i = 0; i < m_terrainWidth; i++) {
@@ -221,7 +221,7 @@ void Vornoi::DelanuayTriangles() {
 	//If VoronoiRegions exists
 	if (m_VRegions) {
 
-#pragma region UsingLibraryToCreateDelaunayTriangles
+#pragma region UsingExternalLibraryToCreateDelaunayTriangles
 
 		//adding points to algorithm
 		vector<Vec2f> points;
@@ -275,13 +275,6 @@ void Vornoi::DelanuayTriangles() {
 			}
 
 		}
-		/*ofstream fout;
-		fout.open("../Engine/Debug/Debug.txt");
-		for (std::vector< Edge* >::iterator e = minSpanTree.begin(); e != minSpanTree.end(); ++e) {
-			fout << (*e)->p1.index << "  ";
-			fout << (*e)->p2.index << endl;
-		}
-		fout.close();*/
 
 
 

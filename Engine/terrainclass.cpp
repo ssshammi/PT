@@ -58,6 +58,9 @@ bool TerrainClass::InitializeTerrain(ID3D11Device* device, int terrainWidth, int
 
 			float i1 = (float)i;
 			float j1 = (float)j;
+			/*if (i% 2 == 0)		//chaging triangulation
+			j1 += 0.5f;*/
+
 
 			m_heightMap[index].x = i1;
 			m_heightMap[index].y = (float)height;
@@ -509,7 +512,7 @@ bool TerrainClass::VoronoiRegions(ID3D11Device* device, bool keydown)
 void TerrainClass::VoronoiRegions()
 {
 	m_vornoi = new Vornoi();
-	m_vornoi->VoronoiRegions(m_heightMap,m_terrainWidth,m_terrainHeight,m_rooms,m_corridors);
+	m_vornoi->GenerateVoronoiDungeon(m_heightMap,m_terrainWidth,m_terrainHeight,m_rooms,m_corridors);
 	int index = m_rooms.at(0)->vPoint->index;
 	float h = 1.50f;
 	m_heightMap[index].y += h;

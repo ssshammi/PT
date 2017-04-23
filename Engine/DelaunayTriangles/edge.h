@@ -14,6 +14,8 @@ class Edge
 
 		Vec2f p1;
 		Vec2f p2;
+
+		// Added variables to store information of the voronoi regions
 		float weight = std::numeric_limits<float>::infinity();
 		bool used = false;
 		bool operator <(const Edge &other) const{	return weight < other.weight;	}

@@ -110,7 +110,6 @@ double PerlinNoise::noise(double x, double y, double z)
 
 PerlinNoise::PerlinNoise()
 {
-	initialize();
 }
 
 PerlinNoise::~PerlinNoise()

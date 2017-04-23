@@ -1,5 +1,5 @@
 
-#define amt 2.5
+#define amt 1.8
 
 /////////////
 // GLOBALS //
@@ -46,16 +46,16 @@ float4 color = shaderTexture.Sample(SampleType, input.tex);
 float4 sum = color;
 
 	float px[10];
-	px[0] = -0.08f;
-	px[1] = -0.06f;
-	px[2] = -0.04f;
-	px[3] = -0.025f;
-	px[4] = -0.01f;
-	px[5] = 0.01f;
-	px[6] = 0.025f;
-	px[7] = 0.04f;
-	px[8] = 0.06f;
-	px[9] = -0.08f;
+	px[0] = 0.10f;
+	px[1] = 0.09f;
+	px[2] = 0.08f;
+	px[3] = 0.07f;
+	px[4] = 0.06f;
+	px[5] = 0.05f;
+	px[6] = 0.04f;
+	px[7] = 0.03f;
+	px[8] = 0.02f;
+	px[9] = 0.01f;
 
 	for (int i = 0; i < 10; i++) {
 		sum += shaderTexture.Sample(SampleType, input.tex + dir*px[i]);
