@@ -122,6 +122,7 @@
     <ClCompile Include="pointlightclass.cpp" />
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="quadtreeclass.cpp" />
+    <ClCompile Include="radialBlurShader.cpp" />
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="terrainclass.cpp" />
@@ -163,6 +164,7 @@
     <ClInclude Include="PointLightHeaderData.h" />
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="quadtreeclass.h" />
+    <ClInclude Include="radialBlurShader.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="terrainclass.h" />
@@ -190,6 +192,7 @@
     <FxCompile Include="color_vs.hlsl" />
     <FxCompile Include="light_ps.hlsl" />
     <FxCompile Include="light_vs.hlsl" />
+    <FxCompile Include="radialBlur_ps.hlsl" />
     <FxCompile Include="textureMul_ps.hlsl" />
     <FxCompile Include="texture_ps.hlsl" />
     <FxCompile Include="texture_vs.hlsl" />

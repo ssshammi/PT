@@ -70,7 +70,7 @@ private:
 	bool UpSampleTexture();
 	bool RenderHorizontalBlurToTexture();
 	bool RenderVerticalBlurToTexture();
-	bool RenderBloom1ToTexture();
+	bool RenderAllCollectablesToTexture();
 
 private:
 	D3DXMATRIX GetTransfromedMatrix(D3DXMATRIX worldMatrix);
@@ -98,7 +98,7 @@ private:
 
 	HorizontalBlurShaderClass* m_HorizontalBlurShader;
 	HorizontalBlurShaderClass* m_VerticalBlurShader;
-	BloomShader1Class* m_BloomShader1;
+	RadialBlurShaderClass* m_RadialBlurShader;
 	RenderTextureClass *m_RenderTexture, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_Bloom1Texture, *m_UpSampleTexure;
 	OrthoWindowClass *m_FullScreenWindow, *m_SmallWindow;
 	TextureShaderClass* m_TextureShader;
