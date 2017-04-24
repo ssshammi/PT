@@ -40,6 +40,7 @@ const float SCREEN_NEAR = 0.1f;
 #include "horizontalblurshaderclass.h"
 #include "BloomShader1Class.h"
 #include "MultiplyShaderClass.h"
+#include "radialBlurShader.h"
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,6 +64,8 @@ private:
 	bool InitializeBlurObjects(HWND, int screenWidth, int screenHeight);
 	void ShutdownBlurObjects();
 	bool RenderSceneToTexture();
+	bool RenderCollectablesToTexture();
+	bool RenderCollectablesOnly();
 	bool Render2DTextureScene();
 	bool UpSampleTexture();
 	bool RenderHorizontalBlurToTexture();

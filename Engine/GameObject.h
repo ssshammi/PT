@@ -11,6 +11,7 @@
 #include "quadtreeclass.h"
 #include "cameraclass.h"
 #include "pointlightclass.h"
+#include "colorshaderclass.h"
 
 class GameObject {
 public:
@@ -24,7 +25,6 @@ public:
 					FrustumClass *frustum, D3DXVECTOR3 LightDirection, D3DXVECTOR4 ambientColor, D3DXVECTOR4 diffusedColor, D3DXVECTOR3 CameraPos,
 					D3DXVECTOR4 SpecularColor, float specularPower, D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[], 
 					float pointLightRadius[], float pointFallOutDist[], int &nFrustum);
-	
 	virtual void Shutdown();
 
 
@@ -45,6 +45,7 @@ public:
 	bool enabled;
 
 protected:
+	virtual bool RenderWithShader(ID3D11DeviceContext* deviceContext, D3DMATRIX world, D3DMATRIX view, D3DMATRIX projection);
 	virtual void HandleInput(float frameTime);
 	virtual void GetModelAndTexture(char* &modelName, WCHAR* &textureName);
 	virtual void GetCurrentPosition(float &x, float &y, float &z);
@@ -98,15 +99,19 @@ public:
 	~CollectablesClass();
 	virtual bool Initialize(ID3D11Device* device, HWND hwnd, InputClass *input, QuadTreeClass *quadTree, PlayerClass *player);
 	void ResetCollectable();
+	virtual void Shutdown();
 
 protected:
+	virtual bool RenderWithShader(ID3D11DeviceContext* deviceContext, D3DMATRIX world, D3DMATRIX view, D3DMATRIX projection);
 	virtual void HandleInput(float frametTime);
 
 
 private:
+	ColorShaderClass* m_colorShader;
 	PlayerClass* m_player;
 	float m_radius;	//radius for the collision of the collectable
 	float m_timer;
+	
 };
 
 #endif // !_GAMEOBJECT_H_

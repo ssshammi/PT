@@ -100,13 +100,17 @@ bool GameObject::Render(ID3D11DeviceContext* deviceContext, D3DXMATRIX worldMatr
 		D3DXMatrixTranslation(&tempWorldMatrix, pos_x, pos_y, pos_z);
 		*/m_model->Render(deviceContext);
 
-		// Render the model using the light shader.
-		result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), M, viewMatrix, projectionMatrix,
-			m_model->GetTexture(), LightDirection, ambientColor, diffusedColor, CameraPos,
-			SpecularColor, specularPower, pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist);
+		result = RenderWithShader(deviceContext,M,viewMatrix,projectionMatrix);
+		if (!result) 
+		{
+			// Render the model using the light shader.
+			result = m_lightshader->Render(deviceContext, m_model->GetIndexCount(), M, viewMatrix, projectionMatrix,
+				m_model->GetTexture(), LightDirection, ambientColor, diffusedColor, CameraPos,
+				SpecularColor, specularPower, pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist);
 
-		if (!result) {
-			return false;
+			if (!result) {
+				return false;
+			}
 		}
 
 		nFrustum++;
@@ -205,6 +209,11 @@ void GameObject::AttachLight(PointLightClass * light)
 	m_initIntensity = m_attachedLight->GetDiffuseColor();
 }
 
+bool GameObject::RenderWithShader(ID3D11DeviceContext* deviceContext, D3DMATRIX world, D3DMATRIX view, D3DMATRIX projection)
+{
+	return false;
+}
+
 void GameObject::HandleInput(float frameTime)
 {
 	//m_position->SetFrameTime(frameTime);
@@ -221,7 +230,7 @@ void GameObject::HandleInput(float frameTime)
 void GameObject::GetModelAndTexture(char *& modelName, WCHAR *& textureName)
 {
 	modelName = "../Engine/data/cube.obj";
-	textureName = L"../Engine/data/bricks.dds";
+	textureName = L"../Engine/data/white.dds";
 	
 }
 
@@ -378,6 +387,7 @@ CollectablesClass::CollectablesClass()
 	m_radius = 1.5f;
 	m_timer = 0.0f;
 	m_scale *= 0.8f;
+	m_colorShader = 0;
 }
 
 CollectablesClass::CollectablesClass(const CollectablesClass &)
@@ -393,6 +403,10 @@ bool CollectablesClass::Initialize(ID3D11Device * device, HWND hwnd, InputClass 
 	GameObject::Initialize(device,hwnd,input,quadTree);
 	m_player = player;
 	if (!m_player)	return false;
+
+	m_colorShader = new ColorShaderClass;
+	m_colorShader->Initialize(device, hwnd);
+	if (!m_colorShader)	return false;
 
 	return true;
 }
@@ -435,5 +449,22 @@ void CollectablesClass::ResetCollectable() {
 	enabled = true;
 	if (m_attachedLight) {
 		m_attachedLight->SetDiffuseColor(m_initIntensity.x, m_initIntensity.y, m_initIntensity.z, m_initIntensity.w);
+	}
+}
+
+bool CollectablesClass::RenderWithShader(ID3D11DeviceContext* deviceContext, D3DMATRIX world, D3DMATRIX view, D3DMATRIX projection) {
+	m_colorShader->Render(deviceContext, m_model->GetIndexCount(),world,view,projection);
+	return true;
+}
+
+void CollectablesClass::Shutdown() {
+	GameObject::Shutdown();
+	if (m_player)
+		m_player = 0;
+
+	if (m_colorShader) {
+		m_colorShader->Shutdown();
+		delete m_colorShader;
+		m_colorShader = 0;
 	}
 }

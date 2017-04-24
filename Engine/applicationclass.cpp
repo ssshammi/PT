@@ -320,7 +320,7 @@ bool ApplicationClass::Initialize(HINSTANCE hinstance, HWND hwnd, int screenWidt
 bool ApplicationClass::InitializeBlurObjects(HWND hwnd, int screenWidth, int screenHeight)
 {
 	bool result;
-	float downSampleWidth = screenWidth/2 , downSampleHeight = screenHeight/2 ;
+	float downSampleWidth = screenWidth/2 , downSampleHeight = screenHeight/2;
 
 	//creating texture shader object
 	m_TextureShader = new TextureShaderClass;
@@ -366,14 +366,14 @@ bool ApplicationClass::InitializeBlurObjects(HWND hwnd, int screenWidth, int scr
 	}
 
 	// Create the vertical blur shader object.
-	m_BloomShader1 = new BloomShader1Class;
-	if (!m_BloomShader1)
+	m_RadialBlurShader = new RadialBlurShaderClass;
+	if (!m_RadialBlurShader)
 	{
 		return false;
 	}
 
 	// Initialize the vertical blur shader object.
-	result = m_BloomShader1->Initialize(m_Direct3D->GetDevice(), hwnd);
+	result = m_RadialBlurShader->Initialize(m_Direct3D->GetDevice(), hwnd);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bloom blur shader object.", L"Error", MB_OK);
@@ -893,7 +893,7 @@ bool ApplicationClass::Render()
 	}
 
 	// Next down sample the render texture to a smaller sized texture.
-	result = RenderBloom1ToTexture();
+	result = RenderCollectablesToTexture();
 	if (!result)
 	{
 		return false;
@@ -995,12 +995,7 @@ bool ApplicationClass::RenderGraphics()
 	if (!result) return false;
 
 
-	// Set the number of models that was actually rendered this frame.
-	/*result = m_Text->SetRenderCount(renderCount, m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		return false;
-	}*/
+	
 	
 
 #pragma region RenderingQuadTerrain
@@ -1018,12 +1013,7 @@ bool ApplicationClass::RenderGraphics()
 	m_QuadTree->Render(m_Frustum, m_Direct3D->GetDeviceContext(), m_TerrainShader);
 
 
-	// Set the number of rendered terrain triangles since some were culled.
-	/*result = m_Text->SetRenderCountQuad(m_QuadTree->GetDrawCount(), m_Direct3D->GetDeviceContext());
-	if (!result)
-	{
-		return false;
-	}*/
+	
 
 #pragma endregion
 	
@@ -1080,6 +1070,63 @@ bool ApplicationClass::RenderSceneToTexture()
 	return true;
 }
 
+bool ApplicationClass::RenderCollectablesToTexture()
+{
+	bool result;
+	// Set the render target to be the render to texture.
+	m_Bloom1Texture->SetRenderTarget(m_Direct3D->GetDeviceContext());
+
+	// Clear the render to texture.
+	m_Bloom1Texture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 0.0f);
+
+	RenderCollectablesOnly();
+
+	// Reset the render target back to the original back buffer and not the render to texture anymore.
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	// Reset the viewport back to the original.
+	m_Direct3D->ResetViewport();
+
+	return true;
+}
+
+bool ApplicationClass::RenderCollectablesOnly() {
+
+	D3DXMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix;
+	bool result;
+	int renderCount;
+
+
+	//obtain all point light colors and positions as an array to pass to the rendering functions
+	D3DXVECTOR4 pointLightColors[NUM_LIGHTS];
+	D3DXVECTOR4 pointLightPositions[NUM_LIGHTS];
+	float pointLightRadius[NUM_LIGHTS], pointFallOutDist[NUM_LIGHTS];
+
+	for (int i = 0; i < NUM_LIGHTS; i++)
+	{
+		pointLightColors[i] = m_PointLights[i]->GetDiffuseColor();
+		pointLightPositions[i] = m_PointLights[i]->GetPosition();
+		pointLightRadius[i] = m_PointLights[i]->GetRadius();
+		pointFallOutDist[i] = m_PointLights[i]->GetFallOffDistance();
+	}
+
+	// Generate the view matrix based on the camera's position.
+	m_Camera->Render();
+
+	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+
+	//render all the objects of the scene to the texture
+	result = m_gameManager->RenderCollectables(m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Frustum,
+		pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist, renderCount);
+	if (!result) return false;
+	return true;
+}
+
 bool ApplicationClass::Render2DTextureScene()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, orthoMatrix;
@@ -1132,12 +1179,10 @@ D3DXMATRIX ApplicationClass::GetTransfromedMatrix(D3DXMATRIX worldMatrix) {
 	return m;
 }
 
-bool ApplicationClass::RenderBloom1ToTexture()
+bool ApplicationClass::RenderAllCollectablesToTexture()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, orthoMatrix;
 	bool result;
-
-
 
 	// Set the render target to be the render to texture.
 	m_Bloom1Texture->SetRenderTarget(m_Direct3D->GetDeviceContext());
@@ -1165,7 +1210,7 @@ bool ApplicationClass::RenderBloom1ToTexture()
 	m_Direct3D->TurnOnAlphaBlending();
 
 	// Render the small ortho window using the horizontal blur shader and the down sampled render to texture resource.
-	result = m_BloomShader1->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), m, viewMatrix, orthoMatrix,
+	result = m_RadialBlurShader->Render(m_Direct3D->GetDeviceContext(), m_FullScreenWindow->GetIndexCount(), m, viewMatrix, orthoMatrix,
 		m_RenderTexture->GetShaderResourceView());
 	
 

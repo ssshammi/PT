@@ -23,10 +23,8 @@ float4 BloomPixelShader(PixelInputType input) : SV_TARGET
 	float4 t1;
 	float gamma = 3.0f, exposure = 1;
 	t1 = shaderTexture.Sample(SampleType, input.tex);
-	float brightness = dot(t1.xyz, float3(0.2126f, 0.7152f, 0.0722f));
+	t1 = lerp(float4(1,1,1,1),t1,t1.a>0.0f);
 
-	t1 = lerp(float4(0.0f, 0.0f, 0.0f, 0.0f), t1, brightness > 0.4f);
-	
 	/*textureColor = (t1 + t2);
 	float4 result = float4(1.0f, 1.0f, 1.0f, 1.0f) - exp(-textureColor * exposure);
 	result = pow(result, 1.0f / gamma);*/
