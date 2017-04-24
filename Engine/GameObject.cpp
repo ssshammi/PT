@@ -318,7 +318,7 @@ void PlayerClass::HandleInput(float frameTime)
 void PlayerClass::GetModelAndTexture(char *& modelName, WCHAR *& textureName)
 {
 	modelName = "../Engine/data/cube.obj";
-	textureName = L"../Engine/data/rock.dds";
+	textureName = L"../Engine/data/player.dds";
 }
 
 void PlayerClass::SetHeight()

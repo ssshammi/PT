@@ -32,7 +32,7 @@ bool RadialBlurShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 	//The new texture.vs and texture.ps HLSL files are loaded for this shader.
 
 	// Initialize the vertex and pixel shaders.
-	result = InitializeShader(device, hwnd, L"../Engine/texture_vs.hlsl", L"../Engine/texture_ps.hlsl");
+	result = InitializeShader(device, hwnd, L"../Engine/texture_vs.hlsl", L"../Engine/radialBlur_ps.hlsl");
 	if (!result)
 	{
 		return false;

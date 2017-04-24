@@ -100,12 +100,13 @@ bool GameManager::RenderCollectables(ID3D11DeviceContext * deviceContext, D3DXMA
 	D3DXVECTOR4 pointLightColors[], D3DXVECTOR4 pointLightPositions[], float pointLightRadius[], float pointFallOutDist[], int &nFrustum) {
 	bool result;
 	for (int i = 0; i < NUM_COLLECTABLES; i++) {
-		if (m_Collectables[i]->enabled)
+		if (m_Collectables[i]->enabled) {
 			result = m_Collectables[i]->Render(deviceContext, worldMatrix, viewMatrix, projectionMatrix, frustum, m_directionalLight->GetDirection(), m_directionalLight->GetAmbientColor(),
 				m_directionalLight->GetDiffuseColor(), m_camera->GetPosition(), m_directionalLight->GetSpecularColor(), m_directionalLight->GetSpecularPower(),
 				pointLightColors, pointLightPositions, pointLightRadius, pointFallOutDist, nFrustum);
 
-		if (!result) return false;
+			if (!result) return false;
+		}
 	}
 
 	return true;

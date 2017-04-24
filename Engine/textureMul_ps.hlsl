@@ -32,35 +32,9 @@ float4 TexturePixelShader(PixelInputType input) : SV_TARGET
 	t2 = shaderTexture2.Sample(SampleType, input.tex).rgb;
 
 	
-	textureColor = lerp(t2+t1,t1,t1.rgb == float3(0,0,0));
+	textureColor = lerp(t2+t1,t1,t1.r == 0 && t1.g == 0 && t1.b == 0);
 	
 	return float4(textureColor,1.0f);
 
-/*
-float2 dir = float2(0.5f,0.5f) - input.tex;
-float dist = sqrt(dir.x*dir.x + dir.y*dir.y);
-float4 color = shaderTexture.Sample(SampleType, input.tex);
-float4 sum = color;
 
-	float px[10];
-	px[0] = 0.10f;
-	px[1] = 0.09f;
-	px[2] = 0.08f;
-	px[3] = 0.07f;
-	px[4] = 0.06f;
-	px[5] = 0.05f;
-	px[6] = 0.04f;
-	px[7] = 0.03f;
-	px[8] = 0.02f;
-	px[9] = 0.01f;
-
-	for (int i = 0; i < 10; i++) {
-		sum += shaderTexture.Sample(SampleType, input.tex + dir*px[i]);
-	}
-
-	sum *= 1.0f / 11.0f;
-	float t =clamp(dist * amt,0,1);
-
-	return lerp(color,sum,t);
-*/
 }

@@ -40,10 +40,10 @@ float4 LightPixelShader(PixelInputType input):SV_TARGET
 
 	textureColor = shaderTexture.Sample(SampleType,input.tex);
 
-	//set color to be the same as the rest of the environment
-	textureColor.y = textureColor.x*(4.0f);
-	textureColor.y = textureColor.y * (0.25f);
-	textureColor.z = textureColor.z * (0.25f);
+	////set color to be the same as the rest of the environment
+	//textureColor.y = textureColor.x*(4.0f);
+	//textureColor.y = textureColor.y * (0.25f);
+	//textureColor.z = textureColor.z * (0.25f);
 
 	color = ambientColor;
 	lightDir = -lightDirection;

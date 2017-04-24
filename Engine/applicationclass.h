@@ -70,7 +70,7 @@ private:
 	bool UpSampleTexture();
 	bool RenderHorizontalBlurToTexture();
 	bool RenderVerticalBlurToTexture();
-	bool RenderAllCollectablesToTexture();
+	bool RenderBlendCollectablesAndMainTexture();
 
 private:
 	D3DXMATRIX GetTransfromedMatrix(D3DXMATRIX worldMatrix);
@@ -94,12 +94,12 @@ private:
 	QuadTreeClass* m_QuadTree;
 	PointLightClass* m_PointLights[NUM_LIGHTS];
 	GameManager* m_gameManager;
-	bool m_freeCam, m_radialBlur;
+	bool m_freeCam, m_radialBlur, m_bloomEnabled;
 
 	HorizontalBlurShaderClass* m_HorizontalBlurShader;
 	HorizontalBlurShaderClass* m_VerticalBlurShader;
 	RadialBlurShaderClass* m_RadialBlurShader;
-	RenderTextureClass *m_RenderTexture, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_Bloom1Texture, *m_UpSampleTexure;
+	RenderTextureClass *m_RenderTexture, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_Bloom1Texture, *m_UpSampleTexure, *m_radialBlurTexture;
 	OrthoWindowClass *m_FullScreenWindow, *m_SmallWindow;
 	TextureShaderClass* m_TextureShader;
 	MultiplyShaderClass* m_MultiplyShader;

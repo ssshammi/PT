@@ -50,6 +50,7 @@ public:
 	bool IsRPressedOnce();
 	bool IsXPressedOnce();
 	bool IsBPressedOnce();
+	bool IsGPressedOnce();
 	bool IsFPressedOnce();
 	bool IsLPressedOnce();
 	bool IsEscapePressed();
