@@ -50,7 +50,8 @@ void Vornoi::GenerateVoronoiDungeon(HeightMapType *hmap, int terrainWidth, int t
 	PerlinNoise::initialize();
 	srand(time(NULL));
 
-	int nOfRooms = RandomFloat(140,230);
+	int nOfRooms = RandomFloat(140,200);
+
 	//creating vornoi Regions with parameters
 	VoronoiRegions(nOfRooms,nOfRooms/10);
 

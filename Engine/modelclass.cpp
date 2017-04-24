@@ -27,11 +27,11 @@ bool ModelClass::Initialize(ID3D11Device* device, char* modelFilename, WCHAR* te
 	bool result;
 	
 		// Load in the model data,
-		result = LoadModel(modelFilename);
-		if (!result)
-		{
-			return false;
-		}
+	result = LoadModel(modelFilename);
+	if (!result)
+	{
+		return false;
+	}
 	
 
 	// Initialize the vertex and index buffer that hold the geometry for the triangle.

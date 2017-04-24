@@ -916,7 +916,6 @@ bool ApplicationClass::HandleInput(float frameTime)
 		if (!result)	return false;
 	}
 
-
 	return true;
 }
 
@@ -970,22 +969,15 @@ bool ApplicationClass::Render()
 		return false;
 	}
 
-	// Next down sample the render texture to a smaller sized texture.
+	// Next Render only the collectables to a new texture.
 	result = RenderCollectablesToTexture();
 	if (!result)
 	{
 		return false;
 	}
 
-	// Perform a horizontal blur on the down sampled render texture.
-	result = RenderHorizontalBlurToTexture();
-	if (!result)
-	{
-		return false;
-	}
-
-	// Now perform a vertical blur on the horizontal blur render texture.
-	result = RenderVerticalBlurToTexture();
+	// Now perform a horizontal and vertical blur on the collectables texture. (This automatically downsizes)
+	result = RenderHorizontalAndVerticalBlurToTexture();
 	if (!result)
 	{
 		return false;
@@ -998,6 +990,7 @@ bool ApplicationClass::Render()
 		return false;
 	}
 
+	//Combine the two textures (Blur and Rendered Texture) to a new texture for the next radial blur step
 	result = RenderBlendCollectablesAndMainTexture();
 	if (!result)	return false;
 
@@ -1005,7 +998,7 @@ bool ApplicationClass::Render()
 	// Clear the buffers to begin the scene.
 	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 0.0f);
 
-	// Render the blurred sampled render texture to the screen.
+	// Render the final texture to the screen and apply a radial blur simultaneously.
 	result = Render2DTextureScene();
 	if (!result)
 	{
@@ -1307,12 +1300,11 @@ bool ApplicationClass::RenderBlendCollectablesAndMainTexture()
 	return true;
 }
 
-bool ApplicationClass::RenderHorizontalBlurToTexture()
+bool ApplicationClass::RenderHorizontalAndVerticalBlurToTexture()
 {
 	D3DXMATRIX worldMatrix, viewMatrix, orthoMatrix;
-	float screenSizeX;
+	float screenSizeY, screenSizeX;
 	bool result;
-
 
 	// Store the screen width in a float that will be used in the horizontal blur shader.
 	screenSizeX = (float)m_HorizontalBlurTexture->GetTextureWidth();
@@ -1329,7 +1321,10 @@ bool ApplicationClass::RenderHorizontalBlurToTexture()
 	// Get the world and view matrices from the camera and d3d objects.
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetWorldMatrix(worldMatrix);
+
+	//transform world matrix to current camera location
 	D3DXMATRIX m = GetTransfromedMatrix(worldMatrix);
+
 	// Get the ortho matrix from the render to texture since texture has different dimensions.
 	m_HorizontalBlurTexture->GetOrthoMatrix(orthoMatrix);
 
@@ -1344,26 +1339,6 @@ bool ApplicationClass::RenderHorizontalBlurToTexture()
 	// Render the small ortho window using the horizontal blur shader and the down sampled render to texture resource.
 	result = m_HorizontalBlurShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), m, viewMatrix, orthoMatrix,
 		m_Bloom1Texture->GetShaderResourceView(), screenSizeX);
-	
-
-	// Turn the Z buffer back on now that all 2D rendering has completed.
-	m_Direct3D->TurnZBufferOn();
-
-	// Reset the render target back to the original back buffer and not the render to texture anymore.
-	m_Direct3D->SetBackBufferRenderTarget();
-
-	// Reset the viewport back to the original.
-	m_Direct3D->ResetViewport();
-
-	return true;
-}
-//The fourth function performs the vertical blur on the horizontally blurred render to texture.The result is stored in yet another render to texture object.
-
-bool ApplicationClass::RenderVerticalBlurToTexture()
-{
-	D3DXMATRIX worldMatrix, viewMatrix, orthoMatrix;
-	float screenSizeY;
-	bool result;
 
 
 	// Store the screen height in a float that will be used in the vertical blur shader.
@@ -1375,29 +1350,11 @@ bool ApplicationClass::RenderVerticalBlurToTexture()
 	// Clear the render to texture.
 	m_VerticalBlurTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), 0.0f, 0.0f, 0.0f, 0.5f);
 
-	// Generate the view matrix based on the camera's position.
-	m_Camera->Render();
-
-	// Get the world and view matrices from the camera and d3d objects.
-	m_Camera->GetViewMatrix(viewMatrix);
-	m_Direct3D->GetWorldMatrix(worldMatrix);
-	D3DXMATRIX m = GetTransfromedMatrix(worldMatrix);
-	// Get the ortho matrix from the render to texture since texture has different dimensions.
-	m_VerticalBlurTexture->GetOrthoMatrix(orthoMatrix);
-
-	// Turn off the Z buffer to begin all 2D rendering.
-	m_Direct3D->TurnZBufferOff();
-
-	// Put the small ortho window vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_SmallWindow->Render(m_Direct3D->GetDeviceContext());
-
 	// Render the small ortho window using the vertical blur shader and the horizontal blurred render to texture resource.
 	result = m_VerticalBlurShader->Render(m_Direct3D->GetDeviceContext(), m_SmallWindow->GetIndexCount(), m, viewMatrix, orthoMatrix,
 		m_HorizontalBlurTexture->GetShaderResourceView(), screenSizeY);
-	if (!result)
-	{
-		return false;
-	}
+	if (!result)	return false;
+
 	// Turn off alpha blending after rendering the text.
 	m_Direct3D->TurnOffAlphaBlending();
 

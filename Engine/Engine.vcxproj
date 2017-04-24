@@ -97,11 +97,13 @@
     <ClCompile Include="applicationclass.cpp" />
     <ClCompile Include="BloomShader1Class.cpp" />
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="CollectablesClass.cpp" />
     <ClCompile Include="colorshaderclass.cpp" />
     <ClCompile Include="cpuclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
     <ClCompile Include="DelaunayTriangles\delaunay.cpp" />
     <ClCompile Include="DelaunayTriangles\triangle.cpp" />
+    <ClCompile Include="faultingTerrain.cpp" />
     <ClCompile Include="fontclass.cpp" />
     <ClCompile Include="fontshaderclass.cpp" />
     <ClCompile Include="fpsclass.cpp" />
@@ -119,6 +121,7 @@
     <ClCompile Include="MultiplyShaderClass.cpp" />
     <ClCompile Include="orthowindowclass.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
+    <ClCompile Include="PlayerClass.cpp" />
     <ClCompile Include="pointlightclass.cpp" />
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="quadtreeclass.cpp" />
@@ -136,6 +139,7 @@
   <ItemGroup>
     <ClInclude Include="applicationclass.h" />
     <ClInclude Include="cameraclass.h" />
+    <ClInclude Include="CollectablesClass.h" />
     <ClInclude Include="colorshaderclass.h" />
     <ClInclude Include="cpuclass.h" />
     <ClInclude Include="d3dclass.h" />
@@ -143,6 +147,7 @@
     <ClInclude Include="DelaunayTriangles\edge.h" />
     <ClInclude Include="DelaunayTriangles\triangle.h" />
     <ClInclude Include="DelaunayTriangles\vector2.h" />
+    <ClInclude Include="faultingTerrain.h" />
     <ClInclude Include="fontclass.h" />
     <ClInclude Include="fontshaderclass.h" />
     <ClInclude Include="fpsclass.h" />
@@ -160,6 +165,7 @@
     <ClInclude Include="MultiplyShaderClass.h" />
     <ClInclude Include="orthowindowclass.h" />
     <ClInclude Include="PerlinNoise.h" />
+    <ClInclude Include="PlayerClass.h" />
     <ClInclude Include="pointlightclass.h" />
     <ClInclude Include="PointLightHeaderData.h" />
     <ClInclude Include="positionclass.h" />

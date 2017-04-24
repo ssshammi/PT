@@ -68,8 +68,7 @@ private:
 	bool RenderCollectablesOnly();
 	bool Render2DTextureScene();
 	bool UpSampleTexture();
-	bool RenderHorizontalBlurToTexture();
-	bool RenderVerticalBlurToTexture();
+	bool RenderHorizontalAndVerticalBlurToTexture();
 	bool RenderBlendCollectablesAndMainTexture();
 
 private:

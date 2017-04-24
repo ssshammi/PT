@@ -3,7 +3,7 @@
 #ifndef _GAMEMANAGER_H_
 #define _GAMEMANAGER_H_
 
-#include "GameObject.h"
+#include "CollectablesClass.h"
 #include "lightclass.h"
 #include "pointlightclass.h"
 #include "cameraclass.h"

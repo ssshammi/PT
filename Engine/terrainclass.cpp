@@ -8,7 +8,7 @@
 #include <Windows.h>
 #include <algorithm>
 #include "textclass.h"
-
+#include "faultingTerrain.h"
 
 
 TerrainClass::TerrainClass()
@@ -388,50 +388,12 @@ bool TerrainClass::SmoothTerrain(ID3D11Device* device, bool keydown)
 
 void TerrainClass::Faulting()
 {
-	int x1, y1, x2, y2;
-	float m, b;
-		x1 = (int)m_terrainWidth*0.1f  + (int)(rand() % (int)(m_terrainWidth*0.8f));
-		y1 = (rand()%2 == 0)? m_terrainHeight-1:0;
-		int random1 = 0;
-		while (random1 == 0 || x2 == x1) {
-			random1 = (int)RandomFloat(-5.0f, 5.0f);
-			x2 = x1 + random1;		//random between -15 and 15
-		}
-		int random2 = 0;
-		while (random2 == 0)
-			random2 = (int)RandomFloat(-5.0f, 5.0f);//(25 - (rand() % 50));
-		y2 = y1 + random2;		//random between -15 and 15
+	FaultingClass *f = new FaultingClass;
+	f->Faulting(m_terrainWidth, m_terrainHeight, m_heightMap);
+	delete f;
+	f = 0;
 
-		m = ((float)(y2 - y1)) / ((float)(x2 - x1));
-		b = (float)y1 - (((float)x1)*m);
-
-
-		float H1 = RandomFloat(-5.0f,5.0f);
-		
-		float H2 = H1*0.5f;
-	
-	//Console();
-	int index;
-	//BOOL WINAPI AllocConsole(void);
-
-
-
-	//Faulting
-	for (int j = 0; j < m_terrainHeight; j++)
-	{
-		for (int i = 0; i < m_terrainWidth; i++)
-		{
-			index = (m_terrainWidth * j) + i;
-
-			bool eq = (float)j > ((float)i*m)+b;
-			if (eq) 
-				m_heightMap[index].y += H1;
-
-			m_heightMap[index].y -= H1;
-
-		}
-	}
-
+	return;
 }
 
 float TerrainClass::RandomFloat(float a, float b) {
@@ -1052,6 +1014,12 @@ bool TerrainClass::InitializeBuffers(ID3D11Device* device)
 
 	// Set the index count to the same as the vertex count.
 	m_indexCount = m_vertexCount;
+
+	//if already initialized please delete this. THIS IS SO IMPORTANT!!! NEVER FORGET THIS #MemoryLeaks
+	if (m_vertices) {
+		delete[] m_vertices;
+		m_vertices = 0;
+	}
 
 	// Create the vertex array.
 	m_vertices = new VertexType[m_vertexCount];

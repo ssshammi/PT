@@ -22,6 +22,7 @@ QuadTreeClass::~QuadTreeClass()
 
 bool QuadTreeClass::Initialize(TerrainClass* terrain, ID3D11Device* device)
 {
+	
 	int vertexCount;
 	float centerX, centerZ, width;
 
@@ -103,11 +104,11 @@ void QuadTreeClass::ReinitializeBuffers(TerrainClass* terrain,ID3D11Device* devi
 	
 	ResetNodeBuffers(m_parentNode, device);
 	// Release the vertex list since the quad tree now has the vertices in each node.
-	if (m_vertexList)
-	{
-		delete[] m_vertexList;
-		m_vertexList = 0;
-	}
+	
+	
+	delete[] m_vertexList;
+	m_vertexList = 0;
+	return;
 }
 
 void QuadTreeClass::ResetNodeBuffers(NodeType *node , ID3D11Device* device)
@@ -160,6 +161,14 @@ void QuadTreeClass::ResetNodeBuffers(NodeType *node , ID3D11Device* device)
 			node->vertexArray[i].walkable = m_vertexList[node->mainTextureIndex[i]].walkable;
 			
 	}
+
+	//releasing index and vertex buffer before creating new one
+	node->vertexBuffer->Release();
+	node->vertexBuffer = 0;
+	node->indexBuffer->Release();
+	node->indexBuffer = 0;
+	
+
 
 	// Set up the description of the vertex buffer.
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
