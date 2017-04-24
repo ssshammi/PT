@@ -248,6 +248,9 @@ void Vornoi::DelanuayTriangles() {
 
 		//finding minimum spanning tree from graph obtaned in delaunay using Kruskal's Algorithm
 		vector<Edge*> minSpanTree;
+
+		//finding Extra corridors to increse circtularity of the dungeon
+		vector<Edge*> extraCorridors;
 		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) 
 		{
 			bool duplicate = false;
@@ -267,7 +270,8 @@ void Vornoi::DelanuayTriangles() {
 
 				if (isCircular(minSpanTree)) {
 					minSpanTree.pop_back();
-					//m_heightMap[0].y -= 1.0f;
+					if (RandomFloat(0.0f, 1.0f) < 0.2f)		//20% chance to add a new corridor to increase circularity
+						extraCorridors.push_back(e._Ptr);
 				}
 
 				if (minSpanTree.size() == nPoints - 1)
@@ -276,56 +280,10 @@ void Vornoi::DelanuayTriangles() {
 
 		}
 
+		//append the two corridors so that the minimum spanning tree stays in tact along with adding extra corridors
+		minSpanTree.insert(minSpanTree.end(), extraCorridors.begin(), extraCorridors.end());
 
 
-#pragma region AdjesencyMatrix_Sucks
-		/*
-
-		//Adding the edges to the Adgecency matrix
-		Edge*** A = new Edge**[nPoints];
-		for (int i = 0; i < nPoints; i++) {
-		A[i] = new Edge*[nPoints];
-		for (int j = i; j < nPoints; j++) {
-		A[i][j] = 0;
-		for (std::vector< Edge >::iterator e = edges.begin(); e != edges.end(); ++e) {
-		if ((e->p1.index == i && e->p2.index == j) || (e->p1.index == j&&e->p2.index == i))
-		{
-		A[i][j] = e._Ptr;
-		break;
-		}
-		}
-		}
-		}
-
-		vector<Edge*> processing;
-		//Using Adgesency matrix to find the minimum spanning tree
-		for (int i = 0; i < nPoints; i++) {
-		for (int j = i; j < nPoints; j++) {
-		if (A[i][j]) {
-		processing.push_back(A[i][j]);
-		}
-		}
-		Edge* minptr = processing.at(0);
-		int loc = 0;
-		for (int k = 0; k < processing.size(); k++) {
-		if (!processing.at(k)->used && processing.at(k) < minptr) {
-		minptr = processing.at(k);
-		loc = k;
-		}
-		}
-		minptr->used = true;
-		minSpanTree.push_back(minptr);
-		processing.erase(processing.begin() + loc);
-
-		if (minSpanTree.size() == nPoints - 1) {
-		minptr = 0;
-		break;
-		}
-		}
-
-		processing.clear();
-		*/
-#pragma endregion
 
 		makeCorridors(minSpanTree);
 
@@ -451,14 +409,7 @@ void Vornoi::makeCorridors(const vector<Edge*> &tree) {
 			*/
 			yswap = true;
 		}
-		/*if (xswap && !yswap) {
-		ycol1 = y2;
-		ycol2 = y1;
-		}
-		if (yswap && !xswap) {
-		xcol1 = x2;
-		xcol2 = x1;
-		}*/
+		
 
 
 #pragma region DrawingLines
@@ -529,17 +480,7 @@ void Vornoi::ReleaseVornoi()
 	}
 
 	if (m_VRegions) {
-		/*for (int i = 0; i < m_VRegions->size(); i++)
-		{
-		for (std::vector< HeightMapType* >::iterator it = m_VRegions->at(i)->VRegions->begin(); it != m_VRegions->at(i)->VRegions->end(); ++it)
-		{
-		delete (*it);
-		}
-		m_VRegions->at(i)->VRegions->clear();
-		delete m_VRegions->at(i)->VRegions;
-		m_VRegions->at(i)->VRegions = 0;
-
-		}*/
+		
 		for (std::vector< VoronoiRegion* >::iterator it = m_VRegions->begin(); it != m_VRegions->end(); ++it)
 		{
 			delete (*it);
