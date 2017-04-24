@@ -220,7 +220,7 @@ void GameObject::HandleInput(float frameTime)
 
 void GameObject::GetModelAndTexture(char *& modelName, WCHAR *& textureName)
 {
-	modelName = "../Engine/data/cube.obj";
+	modelName = "../Engine/data/cube.txt";
 	textureName = L"../Engine/data/bricks.dds";
 	
 }
@@ -242,7 +242,10 @@ void GameObject::GetCurrentPosition(float &x, float &y, float &z)
 PlayerClass::PlayerClass()
 {
 	m_camera = 0;
-	//m_scale.x = 2.0f;
+
+	m_scale.x = 0.5f;
+	m_scale.y = 0.5f;
+	m_scale.z = 0.5f;
 }
 
 PlayerClass::PlayerClass(const PlayerClass &)
@@ -308,7 +311,7 @@ void PlayerClass::HandleInput(float frameTime)
 
 void PlayerClass::GetModelAndTexture(char *& modelName, WCHAR *& textureName)
 {
-	modelName = "../Engine/data/cube.obj";
+	modelName = "../Engine/data/cube.txt";
 	textureName = L"../Engine/data/rock.dds";
 }
 
@@ -378,6 +381,10 @@ CollectablesClass::CollectablesClass()
 	m_radius = 1.5f;
 	m_timer = 0.0f;
 	m_scale *= 0.8f;
+
+	m_scale.x = 0.35f;
+	m_scale.y = 0.35f;
+	m_scale.z = 0.35f;
 }
 
 CollectablesClass::CollectablesClass(const CollectablesClass &)
