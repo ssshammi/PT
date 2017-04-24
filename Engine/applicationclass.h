@@ -37,6 +37,8 @@ const float SCREEN_NEAR = 0.1f;
 #include "orthowindowclass.h"
 #include "rendertextureclass.h"
 #include "textureshaderclass.h"
+#include "horizontalblurshaderclass.h"
+#include "BloomShader1Class.h"
 #include "MultiplyShaderClass.h"
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
@@ -62,6 +64,10 @@ private:
 	void ShutdownBlurObjects();
 	bool RenderSceneToTexture();
 	bool Render2DTextureScene();
+	bool UpSampleTexture();
+	bool RenderHorizontalBlurToTexture();
+	bool RenderVerticalBlurToTexture();
+	bool RenderBloom1ToTexture();
 
 private:
 	D3DXMATRIX GetTransfromedMatrix(D3DXMATRIX worldMatrix);
@@ -87,10 +93,11 @@ private:
 	GameManager* m_gameManager;
 	bool m_freeCam, m_radialBlur;
 
-
-	RenderTextureClass *m_RenderTexture;
-
-	OrthoWindowClass *m_FullScreenWindow;
+	HorizontalBlurShaderClass* m_HorizontalBlurShader;
+	HorizontalBlurShaderClass* m_VerticalBlurShader;
+	BloomShader1Class* m_BloomShader1;
+	RenderTextureClass *m_RenderTexture, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_Bloom1Texture, *m_UpSampleTexure;
+	OrthoWindowClass *m_FullScreenWindow, *m_SmallWindow;
 	TextureShaderClass* m_TextureShader;
 	MultiplyShaderClass* m_MultiplyShader;
 	

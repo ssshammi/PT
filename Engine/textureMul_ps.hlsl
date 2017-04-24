@@ -26,20 +26,20 @@ struct PixelInputType
 float4 TexturePixelShader(PixelInputType input) : SV_TARGET
 {
 //Bloom (Trying something)
-//	float4 textureColor, t1, t2;
-//float gamma = 3.0f, exposure = 1;
-//t1 = shaderTexture.Sample(SampleType, input.tex);
-//t2 = shaderTexture2.Sample(SampleType, input.tex);
-//// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-////float f1 = t1.x + t1.y + t1.z;
-//float brightness = dot(t2.xyz, float3(0.2126f, 0.7152f, 0.0722f));
-//
-//t2 = lerp(float4(0.0f,0.0f,0.0f,0.0f),t2, brightness>0.4f);
-//textureColor = (t1+t2);
-//float4 result = float4(1.0f,1.0f,1.0f,1.0f) - exp(-textureColor * exposure);
-//result = pow(result, 1.0f / gamma);
-//
-//return result;
+	float4 textureColor, t1, t2;
+
+	t1 = shaderTexture.Sample(SampleType, input.tex);
+	t2 = shaderTexture2.Sample(SampleType, input.tex);
+
+	float gamma = 3.0f, exposure = 1.0;
+	
+	textureColor = (t1+t2);/*
+	float4 result = float4(1.0f,1.0f,1.0f,1.0f) - exp(-textureColor * exposure);
+	result = pow(abs(result), 1.0f / gamma);*/
+
+	return textureColor;
+
+/*
 float2 dir = float2(0.5f,0.5f) - input.tex;
 float dist = sqrt(dir.x*dir.x + dir.y*dir.y);
 float4 color = shaderTexture.Sample(SampleType, input.tex);
@@ -65,5 +65,5 @@ float4 sum = color;
 	float t =clamp(dist * amt,0,1);
 
 	return lerp(color,sum,t);
-
+*/
 }

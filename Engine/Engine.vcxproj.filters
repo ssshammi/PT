@@ -126,6 +126,9 @@
     <ClCompile Include="MultiplyShaderClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BloomShader1Class.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="applicationclass.h">
@@ -242,6 +245,9 @@
     <ClInclude Include="MultiplyShaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BloomShader1Class.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="font.ps">
@@ -283,6 +289,9 @@
       <Filter>Shader Files</Filter>
     </FxCompile>
     <FxCompile Include="textureMul_ps.hlsl">
+      <Filter>Shader Files</Filter>
+    </FxCompile>
+    <FxCompile Include="bloom_ps.hlsl">
       <Filter>Shader Files</Filter>
     </FxCompile>
   </ItemGroup>
