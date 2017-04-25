@@ -291,6 +291,7 @@ void Vornoi::DelanuayTriangles() {
 		//release Data
 		points.clear();
 
+		extraCorridors.clear();
 
 		minSpanTree.clear();
 
