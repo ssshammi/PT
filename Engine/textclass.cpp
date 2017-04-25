@@ -21,6 +21,7 @@ TextClass::TextClass()
 	m_sentence12 = 0;
 	m_sentence13 = 0;
 	m_sentence14 = 0;
+	m_sentence15 = 0;
 }
 
 
@@ -152,6 +153,11 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	{
 		return false;
 	}
+	result = InitializeSentence(&m_sentence15, 32, device);
+	if (!result)
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -182,6 +188,7 @@ void TextClass::Shutdown()
 	ReleaseSentence(&m_sentence12);
 	ReleaseSentence(&m_sentence13);
 	ReleaseSentence(&m_sentence14);
+	ReleaseSentence(&m_sentence15);
 
 	return;
 }
@@ -272,6 +279,12 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, FontShaderClass* Font
 	}
 
 	result = RenderSentence(m_sentence14, deviceContext, FontShader, worldMatrix, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = RenderSentence(m_sentence15, deviceContext, FontShader, worldMatrix, orthoMatrix);
 	if (!result)
 	{
 		return false;
@@ -698,7 +711,7 @@ bool TextClass::SetCameraPosition(float posX, float posY, float posZ, ID3D11Devi
 	return true;
 }
 
-bool TextClass::SetCollectablesValue(int collectables, bool blurMode,ID3D11DeviceContext* deviceContext) {
+bool TextClass::SetCollectablesValue(int collectables, bool blurMode, bool bloomMode,ID3D11DeviceContext* deviceContext) {
 	int positionX, positionY, positionZ;
 	char tempString[32];
 	char dataString[32];
@@ -758,6 +771,23 @@ bool TextClass::SetCollectablesValue(int collectables, bool blurMode,ID3D11Devic
 		return false;
 	}
 
+	//bloom
+	if (bloomMode) {
+		strcpy_s(tempString, "Enabled");
+	}
+	else
+		strcpy_s(tempString, "Disabled");
+
+	strcpy_s(dataString, "G :   Bloom ");
+	strcat_s(dataString, tempString);
+
+
+	result = UpdateSentence(m_sentence15, dataString, 10, 180, 1.0f, 1.0f, 1.0f, deviceContext);
+	if (!result)
+	{
+		return false;
+	}
+
 	return true;
 }
 
@@ -774,7 +804,7 @@ bool TextClass::SetFreeCamMode(bool enabled, ID3D11DeviceContext* deviceContext)
 	strcpy_s(dataString, "R :   Reset Terrain");
 
 
-	result = UpdateSentence(m_sentence9, dataString, 10, 180, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(m_sentence9, dataString, 10, 200, 1.0f, 1.0f, 1.0f, deviceContext);
 	if (!result)
 	{
 		return false;
@@ -785,7 +815,7 @@ bool TextClass::SetFreeCamMode(bool enabled, ID3D11DeviceContext* deviceContext)
 		strcpy_s(dataString, "V :   Create Voronoi Dungeon");
 
 
-	result = UpdateSentence(m_sentence10, dataString, 10, 200, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(m_sentence10, dataString, 10, 220, 0.0f, 1.0f, 0.0f, deviceContext);
 	if (!result)
 	{
 		return false;
@@ -795,7 +825,7 @@ bool TextClass::SetFreeCamMode(bool enabled, ID3D11DeviceContext* deviceContext)
 		strcpy_s(dataString, "F :   Faulting");
 
 
-	result = UpdateSentence(m_sentence11, dataString, 10, 220, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(m_sentence11, dataString, 10, 240, 0.0f, 1.0f, 0.0f, deviceContext);
 	if (!result)
 	{
 		return false;
@@ -807,7 +837,7 @@ bool TextClass::SetFreeCamMode(bool enabled, ID3D11DeviceContext* deviceContext)
 		strcpy_s(dataString, "S :   Smoothen Terrain");
 
 
-	result = UpdateSentence(m_sentence12, dataString, 10, 240, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(m_sentence12, dataString, 10, 260, 0.0f, 1.0f, 0.0f, deviceContext);
 	if (!result)
 	{
 		return false;
@@ -817,7 +847,7 @@ bool TextClass::SetFreeCamMode(bool enabled, ID3D11DeviceContext* deviceContext)
 		strcpy_s(dataString, "X :   Add Perlin Noise");
 
 	
-	result = UpdateSentence(m_sentence13, dataString, 10, 260, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(m_sentence13, dataString, 10, 280, 0.0f, 1.0f, 0.0f, deviceContext);
 	if (!result)
 	{
 		return false;

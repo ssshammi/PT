@@ -451,7 +451,7 @@ bool ApplicationClass::Frame()
 	}
 
 	//setting text objects
-	result = m_Text->SetCollectablesValue(m_gameManager->GetRemainingCount(), m_renderManager->m_radialBlur, m_Direct3D->GetDeviceContext());
+	result = m_Text->SetCollectablesValue(m_gameManager->GetRemainingCount(), m_renderManager->m_radialBlur, m_renderManager->m_bloomEnabled, m_Direct3D->GetDeviceContext());
 	if (!result)	return false;
 
 	//set free cam texton or off
