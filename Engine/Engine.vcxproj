@@ -126,6 +126,7 @@
     <ClCompile Include="positionclass.cpp" />
     <ClCompile Include="quadtreeclass.cpp" />
     <ClCompile Include="radialBlurShader.cpp" />
+    <ClCompile Include="RenderManagerClass.cpp" />
     <ClCompile Include="rendertextureclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="terrainclass.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="positionclass.h" />
     <ClInclude Include="quadtreeclass.h" />
     <ClInclude Include="radialBlurShader.h" />
+    <ClInclude Include="RenderManagerClass.h" />
     <ClInclude Include="rendertextureclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="terrainclass.h" />

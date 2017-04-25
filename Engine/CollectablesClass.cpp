@@ -52,6 +52,7 @@ void CollectablesClass::HandleInput(float frametTime)
 		const float frequency = 10.0f; // Frequency in Hz
 		float yval = 0.5f * (1.0f + sin(2.0f * pi * m_timer / (frequency*180.0f)));
 		SetPosition(m_x, m_initPos.y + yval, m_z);
+		SetLightPosition();
 	}
 	else {
 		if (m_attachedLight) {
@@ -64,6 +65,12 @@ void CollectablesClass::HandleInput(float frametTime)
 			}
 		}
 	}
+}
+
+void CollectablesClass::SetLightPosition()
+{
+	if(m_attachedLight)
+		m_attachedLight->SetPosition(m_x,m_y,m_z);
 }
 
 

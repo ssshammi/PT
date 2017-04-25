@@ -16,7 +16,7 @@ public:
 protected:
 	virtual bool RenderWithShader(ID3D11DeviceContext* deviceContext, D3DMATRIX world, D3DMATRIX view, D3DMATRIX projection);
 	virtual void HandleInput(float frametTime);
-
+	void SetLightPosition();
 
 private:
 	ColorShaderClass* m_colorShader;

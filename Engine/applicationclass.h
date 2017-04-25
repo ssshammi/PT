@@ -10,8 +10,6 @@
 /////////////
 const bool FULL_SCREEN = false;
 const bool VSYNC_ENABLED = true;
-const float SCREEN_DEPTH = 1000.0f;
-const float SCREEN_NEAR = 0.1f;
 
 
 ///////////////////////
@@ -25,22 +23,12 @@ const float SCREEN_NEAR = 0.1f;
 #include "positionclass.h"
 #include "fpsclass.h"
 #include "cpuclass.h"
-#include "fontshaderclass.h"
 #include "textclass.h"
-#include "terrainshaderclass.h"
 #include "lightclass.h"
-#include "frustumclass.h"
 #include "quadtreeclass.h"
 #include "pointlightclass.h"
 #include "GameManager.h"
-//for blurring effect
-#include "orthowindowclass.h"
-#include "rendertextureclass.h"
-#include "textureshaderclass.h"
-#include "horizontalblurshaderclass.h"
-#include "BloomShader1Class.h"
-#include "MultiplyShaderClass.h"
-#include "radialBlurShader.h"
+#include "RenderManagerClass.h";
 ////////////////////////////////////////////////////////////////////////////////
 // Class name: ApplicationClass
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,23 +45,9 @@ public:
 
 private:
 	bool HandleInput(float);
-	bool RenderGraphics();
 	bool Render();
 	bool SetCameraMovement();
 
-	bool InitializeBlurObjects(HWND, int screenWidth, int screenHeight);
-	void ShutdownBlurObjects();
-	bool RenderSceneToTexture();
-	bool RenderCollectablesToTexture();
-	bool RenderCollectablesOnly();
-	bool Render2DTextureScene();
-	bool UpSampleTexture();
-	bool RenderHorizontalAndVerticalBlurToTexture();
-	bool RenderBlendCollectablesAndMainTexture();
-
-private:
-	D3DXMATRIX GetTransfromedMatrix(D3DXMATRIX worldMatrix);
-	bool RenderText();
 
 
 private:
@@ -85,23 +59,13 @@ private:
 	PositionClass* m_Position;
 	FpsClass* m_Fps;
 	CpuClass* m_Cpu;
-	FontShaderClass* m_FontShader;
 	TextClass* m_Text;
-	TerrainShaderClass* m_TerrainShader;
 	LightClass* m_Light;
-	FrustumClass* m_Frustum;
 	QuadTreeClass* m_QuadTree;
 	PointLightClass* m_PointLights[NUM_LIGHTS];
 	GameManager* m_gameManager;
-	bool m_freeCam, m_radialBlur, m_bloomEnabled;
-
-	HorizontalBlurShaderClass* m_HorizontalBlurShader;
-	HorizontalBlurShaderClass* m_VerticalBlurShader;
-	RadialBlurShaderClass* m_RadialBlurShader;
-	RenderTextureClass *m_RenderTexture, *m_HorizontalBlurTexture, *m_VerticalBlurTexture, *m_Bloom1Texture, *m_UpSampleTexure, *m_radialBlurTexture;
-	OrthoWindowClass *m_FullScreenWindow, *m_SmallWindow;
-	TextureShaderClass* m_TextureShader;
-	MultiplyShaderClass* m_MultiplyShader;
+	bool m_freeCam;
+	RenderManagerClass* m_renderManager;
 	
 };
 
