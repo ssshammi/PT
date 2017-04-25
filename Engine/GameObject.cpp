@@ -233,7 +233,7 @@ void GameObject::HandleInput(float frameTime)
 void GameObject::GetModelAndTexture(char *& modelName, WCHAR *& textureName)
 {
 	modelName = "../Engine/data/cube.txt";
-	textureName = L"../Engine/data/white.dds";
+	textureName = L"../Engine/data/bricks.dds";
 	
 }
 
