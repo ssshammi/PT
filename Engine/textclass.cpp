@@ -804,7 +804,7 @@ bool TextClass::SetFreeCamMode(bool enabled, ID3D11DeviceContext* deviceContext)
 	strcpy_s(dataString, "R :   Reset Terrain");
 
 
-	result = UpdateSentence(m_sentence9, dataString, 10, 200, 1.0f, 1.0f, 1.0f, deviceContext);
+	result = UpdateSentence(m_sentence9, dataString, 10, 200, 0.0f, 1.0f, 0.0f, deviceContext);
 	if (!result)
 	{
 		return false;
@@ -857,7 +857,7 @@ bool TextClass::SetFreeCamMode(bool enabled, ID3D11DeviceContext* deviceContext)
 		strcpy_s(dataString, "Space :   Add Random Noise");
 
 
-	result = UpdateSentence(m_sentence14, dataString, 10, 280, 0.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(m_sentence14, dataString, 10, 300, 0.0f, 1.0f, 0.0f, deviceContext);
 	if (!result)
 	{
 		return false;
