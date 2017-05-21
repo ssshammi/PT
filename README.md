@@ -1,5 +1,5 @@
-
 About The Project:
+
 The aim of this project is to demonstrate the use of direct x and create a procedural environment in 3D. The entire system includes implementation of the lights (directional, diffused, ambient and point lights), importing models(obj), creating meshes (terrains), implementing collisions and player movement. In addition, the engine also has functionalities to create gameobjects and gather inputs from the keyboard and mouse to make a functional prototype.
 More details of the generation process can be found in the PDF File below.
 
